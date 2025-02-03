@@ -8,7 +8,7 @@ namespace my {
 
       TEST(AdtInt, Constructor) {
         auto dt = adt::Adt<int>{};
-        EXPECT_EQ(true, true);
+        EXPECT_EQ(dt.begin(), dt.end());
       }
 
     }  // namespace
