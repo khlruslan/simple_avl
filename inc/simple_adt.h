@@ -5,7 +5,9 @@
 #include <ios> // boolalpha
 #include <iostream> // 
 #include <vector>
+#include <compare>
 
+#define my_debug
 
 namespace adt{
 template <class T>
@@ -102,6 +104,7 @@ template <class T>
       template <class O>
        void InorderTraverse(const NodePtr p, O o) const; 
 
+      void DumpTraceNodeStack(std::ostream& os, TraceNodeStack& tns);
   }; //class Adt
 
 // save tree to .dot file 
@@ -133,6 +136,12 @@ void Adt<T>::save_dot(std::ostream& os, const Adt& tree) {
   os << "}\n";
 }
 
+template <class T>
+void Adt<T>::DumpTraceNodeStack(std::ostream& os, typename Adt<T>::TraceNodeStack& tns){
+  for (const auto& p : tns){
+    os << "Node data:" << p.first->avl_data_ << " direction:" << p.second << "\n"; 
+  }
+}
 // inorder traversing tree
 template <class T>
 template <class O>
@@ -174,51 +183,59 @@ typename Adt<T>::InsertResult  Adt<T>::probe(const T& data){
 //probe inserts element into the container, if the container doesn't already contain an element with an equivalent key.
 template <class T>
 typename Adt<T>::InsertResult  Adt<T>::probe_root(const T& data){
-  NodePtr p, q, n;
+  NodePtr p, n;
   TraceNodeStack trace_stack;
   trace_stack.reserve(kMaxStack);
+
+  AvlNode dummy(T{}, root_);
+  trace_stack.emplace_back(&dummy, 0); // this dummy node
 
   NodePtrStack stack;
   stack.reserve(kMaxStack);
 
   int dir;
-  // place root_ node in 
-  trace_stack.emplace_back(root_, 0);
 
-  for(q = nullptr, p = root_; p != nullptr; q = p, stack.push_back(q), p = p->avl_link_[dir]){
+  for(p = root_ ; p != nullptr ; p = p->avl_link_[dir]){
     auto cmp = data <=> p->avl_data_;
-    if (cmp == 0){
+    if (cmp == std::strong_ordering::equal){
       return std::make_pair(Iterator(this, std::move(stack)), false);
     } 
-    dir = cmp > 0;
+    stack.push_back(p); // for iterator
+
+    dir = cmp == std::strong_ordering::greater;
     trace_stack.emplace_back(p, dir); // save current node and direction in to trace_stack
+#ifdef my_debug
+    std::cout << "trace_stack: " << trace_stack.back().first->avl_data_ << " direction:" <<  trace_stack.back().second <<"\n";
+#endif    
   }
 
   n = new AvlNode(data);
   ++size_;
 
-  if (nullptr != root_){
-    //attach new node to previous node
-    q = trace_stack.back().first;
-    dir = trace_stack.back().second;
-    q->avl_link[dir] = n;
+  //attach new node to previous node
+  TraceNode tp = trace_stack.back();
+  tp.first->avl_link_[tp.second] = n;
+  
+  save_dot(std::cerr, *this);
+  DumpTraceNodeStack(std::cout , trace_stack);
+  // move inserted node to root
+  for ( ; trace_stack.size() > 1; ){
+    p = tp.first;
+    dir = tp.second;
+    trace_stack.pop_back();
+    if ( dir == 0 ){// perform right rotation
+      p->avl_link_[0] = n->avl_link_[1];
+      n->avl_link_[1] = p;
+    } else {//perform left rotation
+      p->avl_link_[1] = n->avl_link_[0];
+      n->avl_link_[0] = p;
+    }
 
-    // move inserted node to root
-    TraceNode tp = trace_stack.back();;
-    for ( ; ! trace_stack.empty(); tp = trace_stack.back(), tp.first->avl_link[tp.second] = n ){
-      q = tp.first;
-      dir = tp.second;
-      trace_stack.pop_back();
-      if ( dir == 0 ){// perform right rotation
-        q->avl_link[0] = n->avl_link[1];
-        n->avl_link[1] = q;
-      } else {//perform left rotation
-        q->avl_link[1] = n->avl_link[0];
-        n->avl_link[0] = q;
-      }
-    }// for
-  } // if (nullptr == root_)
-  root_ = n;
+    tp = trace_stack.back();
+    tp.first->avl_link_[tp.second] = n;
+  }// for
+
+  root_ = dummy.avl_link_[0];
   return std::make_pair(Iterator(this, root_), true);
 }
 
