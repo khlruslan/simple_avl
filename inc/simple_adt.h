@@ -107,12 +107,12 @@ template <class T>
       AvlNode* root_ = nullptr;
       std::size_t size_ = 0ul;
     private:
-      // Inorder traversing tree
+      // In-order traversing tree
       template <class O>
-       void InorderTraverse(const NodePtr p, O o) const; 
-      // Postorder traversing tree
+       void InorderTraverse(NodePtr p, O o) const; 
+      // Post-order traversing tree
       template <class O>
-       void PostorderTraverse(const NodePtr p, O o); 
+       void PostorderTraverse(NodePtr p, O o); 
 
       void DumpTraceNodeStack(std::ostream& os, TraceNodeStack& tns);
   }; //class Adt
@@ -146,10 +146,10 @@ void Adt<T>::save_dot(std::ostream& os, const Adt& tree) {
   os << "}\n";
 }
 
-// Post order traverse and free nodes
+// Post-order traverse and free nodes
 template <class T>
 template <class O>
-void Adt<T>::PostorderTraverse(const typename Adt<T>::NodePtr node, O o){
+void Adt<T>::PostorderTraverse(typename Adt<T>::NodePtr node, O o){
   NodePtr p;
   std::size_t dir;
   TraceNodeStack stack;
@@ -167,7 +167,7 @@ void Adt<T>::PostorderTraverse(const typename Adt<T>::NodePtr node, O o){
     p = tp.first;
     dir = tp.second;
     stack.pop_back();
-#ifdef my_debug
+#ifdef my_debug_1
     std::cerr << "Current node:" <<p->avl_data_ << " direction :"<< dir << "\n";
 #endif
     if (kLeaf == dir){
@@ -192,23 +192,48 @@ void Adt<T>::Clear(){
   size_ = 0;
 }
 
+// In-order traverse and free nodes
+template <class T>
+template <class O>
+void Adt<T>::InorderTraverse(typename Adt<T>::NodePtr node, O o) const{
+  NodePtr p;
+  std::size_t dir;
+  TraceNodeStack stack;
+  stack.reserve(kMaxStack * 3);
+  p = node;
+  if (nullptr == node){
+    return;
+  }
+  stack.emplace_back(p, kRight); // check right link
+  stack.emplace_back(p, kLeaf); // check own node
+  stack.emplace_back(p, kLeft); // check left link
+
+  while (!stack.empty() ){
+    TraceNode tp = stack.back();
+    p = tp.first;
+    dir = tp.second;
+    stack.pop_back();
+#ifdef my_debug_1
+    std::cerr << "Current node:" <<p->avl_data_ << " direction :"<< dir << "\n";
+#endif
+    if (kLeaf == dir){
+      o(p);
+    } else {
+      if (nullptr != p -> avl_link_[dir]){
+        p = p -> avl_link_[dir];
+        stack.emplace_back(p, kRight); // check right link
+        stack.emplace_back(p, kLeaf); // check own node
+        stack.emplace_back(p, kLeft); // check left link
+      } 
+    }
+  }
+}
+
 template <class T>
 void Adt<T>::DumpTraceNodeStack(std::ostream& os, typename Adt<T>::TraceNodeStack& tns){
   for (const auto& p : tns){
     os << "Node data:" << p.first->avl_data_ << " direction:" << p.second << "\n"; 
   }
-}
-// inorder traversing tree
-template <class T>
-template <class O>
-void Adt<T>::InorderTraverse(const typename Adt<T>::NodePtr p, O o) const{
-
-  if (nullptr == p){
-    return;
-  }
-  InorderTraverse(p->avl_link_[0], o);
-  o(p);
-  InorderTraverse(p->avl_link_[1],o);
 }
 
 //probe inserts element into the container, if the container doesn't already contain an element with an equivalent key.
