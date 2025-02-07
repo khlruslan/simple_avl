@@ -14,6 +14,10 @@ template <class T>
   // ADT -  Abstract Data Table
   class Adt{
       static constexpr std::size_t kMaxStack = 64;
+      static constexpr std::size_t kLeft = 0;
+      static constexpr std::size_t kRight = 1;
+      static constexpr std::size_t kLeaf = 2;
+
       using AdtPtr = Adt*;
 
       struct AvlNode;
@@ -147,33 +151,34 @@ template <class T>
 template <class O>
 void Adt<T>::PostorderTraverse(const typename Adt<T>::NodePtr node, O o){
   NodePtr p;
+  std::size_t dir;
   TraceNodeStack stack;
-  stack.reserve(kMaxStack);
+  stack.reserve(kMaxStack * 3);
   p = node;
   if (nullptr == node){
     return;
   }
-  while (p != nullptr){
+  stack.emplace_back(p, kLeaf); // check own node
+  stack.emplace_back(p, kRight); // check right link
+  stack.emplace_back(p, kLeft); // check left link
+
+  while (!stack.empty() ){
+    TraceNode tp = stack.back();
+    p = tp.first;
+    dir = tp.second;
+    stack.pop_back();
 #ifdef my_debug
-    std::cerr << "Current node:" <<p->avl_data_ << "\n";
+    std::cerr << "Current node:" <<p->avl_data_ << " direction :"<< dir << "\n";
 #endif
-    if (nullptr != p->avl_link_[0]){
-      stack.emplace_back(p, 0);
-      p = p->avl_link_[0];
-    } else if (nullptr != p->avl_link_[1]){
-      stack.emplace_back(p, 1);
-      p = p->avl_link_[1];
-    } else {
+    if (kLeaf == dir){
       o(p);
-      if (stack.empty()){
-        p = nullptr;
-      } else {
-        TraceNode tp = stack.back();
-        p = tp.first;
-        int dir = tp.second;
-        p->avl_link_[dir] = nullptr;
-        stack.pop_back();
-      }
+    } else {
+      if (nullptr != p -> avl_link_[dir]){
+        p = p -> avl_link_[dir];
+        stack.emplace_back(p, kLeaf); // check own node
+        stack.emplace_back(p, kRight); // check right link
+        stack.emplace_back(p, kLeft); // check left link
+      } 
     }
   }
 }
