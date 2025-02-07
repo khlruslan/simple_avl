@@ -90,19 +90,25 @@ template <class T>
       Iterator erase(Iterator& pos);
       // find node equal key , if not found = return end()
       Iterator find(const T& key);
+      // clear Atd
+      void Clear();
       // save tree to .dot file 
       static void save_dot(std::ostream& os, const Adt& tree);
 
       Iterator begin() {return end_;}
       Iterator end() {return end_;}
+      ~Adt(){ Clear();}
     private:
       Iterator end_ = nullptr;
-      AvlNode* root_;
+      AvlNode* root_ = nullptr;
       std::size_t size_ = 0ul;
     private:
-      // inorder traversing tree
+      // Inorder traversing tree
       template <class O>
        void InorderTraverse(const NodePtr p, O o) const; 
+      // Postorder traversing tree
+      template <class O>
+       void PostorderTraverse(const NodePtr p, O o); 
 
       void DumpTraceNodeStack(std::ostream& os, TraceNodeStack& tns);
   }; //class Adt
@@ -134,6 +140,51 @@ void Adt<T>::save_dot(std::ostream& os, const Adt& tree) {
      }
   });
   os << "}\n";
+}
+
+// Post order traverse and free nodes
+template <class T>
+template <class O>
+void Adt<T>::PostorderTraverse(const typename Adt<T>::NodePtr node, O o){
+  NodePtr p;
+  TraceNodeStack stack;
+  stack.reserve(kMaxStack);
+  p = node;
+  if (nullptr == node){
+    return;
+  }
+  while (p != nullptr){
+#ifdef my_debug
+    std::cerr << "Current node:" <<p->avl_data_ << "\n";
+#endif
+    if (nullptr != p->avl_link_[0]){
+      stack.emplace_back(p, 0);
+      p = p->avl_link_[0];
+    } else if (nullptr != p->avl_link_[1]){
+      stack.emplace_back(p, 1);
+      p = p->avl_link_[1];
+    } else {
+      o(p);
+      if (stack.empty()){
+        p = nullptr;
+      } else {
+        TraceNode tp = stack.back();
+        p = tp.first;
+        int dir = tp.second;
+        p->avl_link_[dir] = nullptr;
+        stack.pop_back();
+      }
+    }
+  }
+}
+
+template <class T>
+void Adt<T>::Clear(){
+  PostorderTraverse(root_, [](NodePtr p){
+      delete p;
+   }
+  );
+  size_ = 0;
 }
 
 template <class T>
@@ -204,7 +255,7 @@ typename Adt<T>::InsertResult  Adt<T>::probe_root(const T& data){
 
     dir = cmp == std::strong_ordering::greater;
     trace_stack.emplace_back(p, dir); // save current node and direction in to trace_stack
-#ifdef my_debug
+#ifdef my_debug_1
     std::cout << "trace_stack: " << trace_stack.back().first->avl_data_ << " direction:" <<  trace_stack.back().second <<"\n";
 #endif    
   }
@@ -215,9 +266,12 @@ typename Adt<T>::InsertResult  Adt<T>::probe_root(const T& data){
   //attach new node to previous node
   TraceNode tp = trace_stack.back();
   tp.first->avl_link_[tp.second] = n;
-  
+
+#ifdef my_debug_1
   save_dot(std::cerr, *this);
   DumpTraceNodeStack(std::cout , trace_stack);
+#endif
+
   // move inserted node to root
   for ( ; trace_stack.size() > 1; ){
     p = tp.first;
