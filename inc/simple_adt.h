@@ -96,12 +96,14 @@ template <class T>
       Iterator find(const T& key);
       // clear Atd
       void Clear();
+      // Destroy Atd
+      void Destroy();
       // save tree to .dot file 
       static void save_dot(std::ostream& os, const Adt& tree);
 
       Iterator begin() {return end_;}
       Iterator end() {return end_;}
-      ~Adt(){ Clear();}
+      ~Adt(){ Destroy();}
     private:
       Iterator end_ = nullptr;
       AvlNode* root_ = nullptr;
@@ -181,6 +183,25 @@ void Adt<T>::PostorderTraverse(typename Adt<T>::NodePtr node, O o){
       } 
     }
   }
+}
+//
+// Destroy Avl tree by right rotations and delete root node which has oly right child
+//
+template <class T>
+void Adt<T>::Destroy(){
+  NodePtr p, q;
+  for (p = root_ ; nullptr != p ; p = q){
+    if (nullptr == p->avl_link_[0]){ // we have only right child
+      q = p->avl_link_[1];
+      delete p;
+    } else { // rotate right 
+      q = p->avl_link_[0]; // new root
+      p->avl_link_[0] = q->avl_link_[1];
+      q->avl_link_[1] = p;
+    }
+  }
+  size_ = 0;
+  root_ = nullptr;
 }
 
 template <class T>
