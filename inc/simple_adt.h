@@ -18,11 +18,6 @@ template <class T>
       static constexpr std::size_t kLeft = 0;
       static constexpr std::size_t kRight = 1;
       static constexpr std::size_t kLeaf = 2;
-      static constexpr signed char kMinusOne = static_cast<signed char>(-1);
-      static constexpr signed char kMinusTwo = static_cast<signed char>(-2);
-      static constexpr signed char kPlusOne = static_cast<signed char>(1);
-      static constexpr signed char kPlusTwo = static_cast<signed char>(2);
-      static constexpr signed char kZero = static_cast<signed char>(0);
 
 
       using AdtPtr = Adt*;
