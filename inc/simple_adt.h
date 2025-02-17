@@ -1,4 +1,5 @@
 #pragma once
+#include <cassert>
 #include <cstddef>
 #include <memory>
 #include <utility>
@@ -17,6 +18,12 @@ template <class T>
       static constexpr std::size_t kLeft = 0;
       static constexpr std::size_t kRight = 1;
       static constexpr std::size_t kLeaf = 2;
+      static constexpr signed char kMinusOne = static_cast<signed char>(-1);
+      static constexpr signed char kMinusTwo = static_cast<signed char>(-2);
+      static constexpr signed char kPlusOne = static_cast<signed char>(1);
+      static constexpr signed char kPlusTwo = static_cast<signed char>(2);
+      static constexpr signed char kZero = static_cast<signed char>(0);
+
 
       using AdtPtr = Adt*;
 
@@ -25,6 +32,7 @@ template <class T>
       using NodePtrStack = std::vector<NodePtr>;
       using TraceNode = std::pair<NodePtr, int>;
       using TraceNodeStack = std::vector<TraceNode>;
+      using DirectionStack = std::vector<int>;
 
       struct AvlNode{
         NodePtr avl_link_[2]; // subtrees
@@ -260,26 +268,145 @@ void Adt<T>::DumpTraceNodeStack(std::ostream& os, typename Adt<T>::TraceNodeStac
 //probe inserts element into the container, if the container doesn't already contain an element with an equivalent key.
 template <class T>
 typename Adt<T>::InsertResult  Adt<T>::probe(const T& data){
-  NodePtr p, q, n;
-  NodePtrStack stack;
-  int dir;
+  NodePtr p, q; // Iterator and parent
+  NodePtr y, z; // Top node to update and parent
+  NodePtr n; // new node
+  NodePtr w; // root of rebalanced tree
+  DirectionStack da;
+  da.reserve(kMaxStack);
 
-  for(q = nullptr, p = root_; p != nullptr; q = p, stack.push_back(q), p = p->avl_link_[dir]){
+  NodePtrStack stack;
+  int dir = 0;
+  AvlNode dummy(T{}, root_);
+  z = &dummy;
+  y = root_;
+
+  // Step 1 : Search new node position
+  for(q = z, p = y; nullptr != p ; q = p, stack.push_back(p), p = p->avl_link_[dir]){
     auto cmp = data <=> p->avl_data_;
-    if (cmp == 0){
+    if (cmp == std::strong_ordering::equal){
       return std::make_pair(Iterator(this, std::move(stack)), false);
     } 
-    dir = cmp > 0;
+    if (p->avl_balance_ != 0){// Keep information about last node need to rebalance
+      z = q; 
+      y = p;
+      da.resize(0);
+    }
+    dir = cmp == std::strong_ordering::greater;
+    da.push_back(dir);
   }
-
+  // Step 2 : Insert
   n = new AvlNode(data);
   ++size_;
-  if (q != nullptr){
-    q->avl_link_[dir] = n;
-  } else {
-    root_ = n;
+  q->avl_link_[dir] = n;
+  if (nullptr == y){ // Tree was empty 
+    root_ = dummy.avl_link_[0];
+    return std::make_pair(Iterator(this, root_), false);
+  }
+
+  stack.push_back(n);
+  // Step 3 : Update balance factor
+  int k = 0;
+  for (p = y; p != n ; p = p->avl_link_[da[k]], ++k ){
+    if (da[k] == 0){
+      --(p->avl_balance_);
+    } else {
+      ++(p->avl_balance_);
+    }
+  }
+
+
+  //Step 4 : Rebalance
+  if (y->avl_balance_ == -2){
+    // rebalance tree after insertion in left subtree
+    NodePtr x = y->avl_link_[0];
+    if (x->avl_balance_ == -1){
+      // rotate right at y 
+      w = x;
+      y->avl_link_[0] = x->avl_link_[1];
+      x->avl_link_[1] = y;
+      x->avl_balance_ = y->avl_balance_ = 0;
+    } else {
+      // rotate left at x than right at y
+      assert(x->balance_ == +1);
+      w = x->avl_link_[1];
+      x->avl_link_[1] = w->avl_link_[0];
+      w->avl_link_[0] = x;
+      y->avl_link_[0] = w->avl_link_[1];
+      w->avl_link_[1] = y;
+      if (w->avl_balance_ == -1){ 
+        x->avl_balance_ = 0; 
+        y->avl_balance_ = +1;
+      }else if (w->avl_balance_ == 0) {
+        x->avl_balance_ = 0;
+        y->avl_balance_ = 0;
+      } else { 
+        assert(w->avl_balance_ == 1 );
+        x->avl_balance_ = -1;
+        y->avl_balance_ = 0;
+      }
+      w->avl_balance_ = 0;
+    }
+  } else if (y->avl_balance_ == 2){
+    // rebalance tree after insertion in left subtree
+    NodePtr x = y->avl_link_[1];
+    if (x->avl_balance_ == 1){
+      // rotate left at y 
+      w = x;
+      y->avl_link_[1] =  x->avl_link_[0];
+      x->avl_link_[0] = y;
+      x->avl_balance_ = 0;
+      y->avl_balance_ = 0;
+    } else {
+      // rotate right at x then left at y
+      assert(x->avl_blance_ == -1);
+      w = x->avl_link_[0];
+      x->avl_link_[0] =  w->avl_link_[1];
+      w->avl_link_[1] = x;
+      y->avl_link_[1] =  w->avl_link_[0];
+      w->avl_link_[0] = y;
+      if (w->avl_balance_ == 1){
+        x->avl_balance_ = 0;
+        y->avl_balance_ = -1;
+      }else if (w->avl_balance_ == 0){
+        x->avl_balance_ = 0;
+        y->avl_balance_ = 0;
+      } else {
+        assert( w->avl_balance_ == -1);
+        x->avl_balance_ = 1;
+        y->avl_balance_ = 0;
+      }
+      w->avl_balance_ = 0;
+    }
+  } else { // no need to rebalance tree . stack contains all nodes to inserted node
+    root_ = dummy.avl_link_[0];
+    return std::make_pair(Iterator(this, std::move(stack)), false);
+  }
+  // connect rebalanced tree to parent node z
+  z->avl_link_[ y != z->avl_link_[0]] = w;
+  root_ = dummy.avl_link_[0];
+
+  // Step 5  erase last items in stack
+  if ( z !=&dummy ){
+    while (!stack.empty() && stack.back() != z){
+      stack.pop_back();
+    }
+  }
+  assert(z == &dummy || stack.back() == z);
+  // Add required nodes to iterator
+  p = w;
+  while (nullptr != p ) {
+    stack.push_back(p);
+    auto cmp = data <=> p->avl_data_;
+    if (cmp == std::strong_ordering::equal){
+      p = nullptr;
+    } else {
+      dir = cmp == std::strong_ordering::greater;
+      p = p->avl_link_[dir];
+    }
   } 
-  return std::make_pair(Iterator(this, std::move(stack)), true);
+  
+  return std::make_pair(Iterator(this, std::move(stack)), false);
 }
 
 //probe inserts element into the container, if the container doesn't already contain an element with an equivalent key.

@@ -20,11 +20,9 @@ std::string GetFileName(const std::string &name, const std::string& ext, int i){
 
 int main(){
   adt::Adt<int> t;
-  std::vector<int> data = {5, 4, 13, 8, 9, 7, 1, 3, 2, 6};
-  int i = 0;
-  for (auto n : data){
-    t.probe_root(n);
-    SaveToFile(GetFileName("tree", "dot", ++i), t);
+  for (int i = 0 ; i < 40 ; ++i){
+    t.probe(i);
+    SaveToFile(GetFileName("tree", "dot", i+1), t);
   }
   return 0;
 }
