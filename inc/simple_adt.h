@@ -92,9 +92,9 @@ template <class T>
       //Inserts element(s) into the container, if the container doesn't already contain an element with an equivalent key.
       InsertResult insert(const T& t);
       // Removes the element (if one exists) with the key equivalent to key.
-      Iterator erase(const T& t);
+      Iterator Erase(const T& t);
       // Removes the element at pos.
-      Iterator erase(Iterator& pos);
+      Iterator Erase(Iterator& pos);
       // find node equal key , if not found = return end()
       Iterator find(const T& key);
       // clear Atd
@@ -103,6 +103,10 @@ template <class T>
       void Destroy();
       // save tree to .dot file 
       static void save_dot(std::ostream& os, const Adt& tree);
+      // get items vector in preorder traverse
+      std::vector<T> GetPreorderVector() const;
+      // get items vector in inorder traverse
+      std::vector<T> GetInorderVector() const;
 
       Iterator begin() {return end_;}
       Iterator end() {return end_;}
@@ -114,7 +118,10 @@ template <class T>
     private:
       // In-order traversing tree
       template <class O>
-       void InorderTraverse(NodePtr p, O o) const; 
+      void InorderTraverse(NodePtr p, O o) const; 
+      // Pre-order traversing tree
+      template <class O>
+      void PreorderTraverse(NodePtr p, O o) const; 
       // Post-order traversing tree
       template <class O>
        void PostorderTraverse(NodePtr p, O o); 
@@ -122,6 +129,10 @@ template <class T>
       void DumpTraceNodeStack(std::ostream& os, TraceNodeStack& tns);
   }; //class Adt
 
+template <class T>
+std::size_t Adt<T>::size() const{
+  return size_;
+}
 // save tree to .dot file 
 template <class T>
 void Adt<T>::save_dot(std::ostream& os, const Adt& tree) {
@@ -133,7 +144,7 @@ void Adt<T>::save_dot(std::ostream& os, const Adt& tree) {
      if (nullptr == p){
      return;
      }
-     os << "  node"<< p->avl_data_ << "[label=\"<f0>|<f2> " << p->avl_data_ << " |<f1>\"];\n";
+     os << "  node"<< p->avl_data_ << "[label=\"<f0>|<f2> " << p->avl_data_ << "\\n" << static_cast<int>(p->avl_balance_) << " |<f1>\"];\n";
   });
 
   // print edges
@@ -149,6 +160,34 @@ void Adt<T>::save_dot(std::ostream& os, const Adt& tree) {
      }
   });
   os << "}\n";
+}
+
+// get items vector in inorder traverse
+template <class T>
+std::vector<T> Adt<T>::GetInorderVector() const{
+  std::vector<T> result;
+  result.reserve(size());
+  InorderTraverse(root_, [&result](const NodePtr p){
+      if(nullptr == p){
+        return;
+      }
+      result.emplace_back(p->avl_data_);
+  });
+  return result;
+}
+
+// get items vector in preorder traverse
+template <class T>
+std::vector<T> Adt<T>::GetPreorderVector() const{
+  std::vector<T> result;
+  result.reserve(size());
+  PreorderTraverse(root_, [&result](const NodePtr p){
+      if(nullptr == p){
+        return;
+      }
+      result.emplace_back(p->avl_data_);
+  });
+  return result;
 }
 
 // Post-order traverse and free nodes
@@ -187,6 +226,44 @@ void Adt<T>::PostorderTraverse(typename Adt<T>::NodePtr node, O o){
     }
   }
 }
+
+// Pre-order traverse and free nodes
+template <class T>
+template <class O>
+void Adt<T>::PreorderTraverse(typename Adt<T>::NodePtr node, O o) const{
+  NodePtr p;
+  std::size_t dir;
+  TraceNodeStack stack;
+  stack.reserve(kMaxStack * 3);
+  p = node;
+  if (nullptr == node){
+    return;
+  }
+  stack.emplace_back(p, kRight); // check right link
+  stack.emplace_back(p, kLeft); // check left link
+  stack.emplace_back(p, kLeaf); // check own node
+
+  while (!stack.empty() ){
+    TraceNode tp = stack.back();
+    p = tp.first;
+    dir = tp.second;
+    stack.pop_back();
+#ifdef my_debug_1
+    std::cerr << "Current node:" <<p->avl_data_ << " direction :"<< dir << "\n";
+#endif
+    if (kLeaf == dir){
+      o(p);
+    } else {
+      if (nullptr != p -> avl_link_[dir]){
+        p = p -> avl_link_[dir];
+        stack.emplace_back(p, kRight); // check right link
+        stack.emplace_back(p, kLeft); // check left link
+        stack.emplace_back(p, kLeaf); // check own node
+      } 
+    }
+  }
+}
+//
 //
 // Destroy Avl tree by right rotations and delete root node which has oly right child
 //
@@ -317,6 +394,7 @@ typename Adt<T>::InsertResult  Adt<T>::probe(const T& data){
     NodePtr x = y->avl_link_[0];
     if (x->avl_balance_ == -1){
       // rotate right at y 
+      // Test rotate 1
       w = x;
       y->avl_link_[0] = x->avl_link_[1];
       x->avl_link_[1] = y;
@@ -330,13 +408,20 @@ typename Adt<T>::InsertResult  Adt<T>::probe(const T& data){
       y->avl_link_[0] = w->avl_link_[1];
       w->avl_link_[1] = y;
       if (w->avl_balance_ == -1){ 
+        // Test rotate 2
         x->avl_balance_ = 0; 
         y->avl_balance_ = +1;
       }else if (w->avl_balance_ == 0) {
+        // This means that w is the new node. a, b, c, and d have height 0. After the
+        // rotations, x and y have balance factor 0.
+        //
+        //  Test rotation 4
+        //
         x->avl_balance_ = 0;
         y->avl_balance_ = 0;
       } else { 
         assert(w->avl_balance_ == 1 );
+        // Test rotate 3 
         x->avl_balance_ = -1;
         y->avl_balance_ = 0;
       }
