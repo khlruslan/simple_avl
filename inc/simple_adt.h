@@ -107,6 +107,8 @@ template <class T>
       std::vector<T> GetPreorderVector() const;
       // get items vector in inorder traverse
       std::vector<T> GetInorderVector() const;
+      // get vector of avl_balance for all nodes in inorder 
+      std::vector<int> GetInorderAvlBalanceVector() const;
 
       Iterator begin() {return end_;}
       Iterator end() {return end_;}
@@ -186,6 +188,20 @@ std::vector<T> Adt<T>::GetPreorderVector() const{
         return;
       }
       result.emplace_back(p->avl_data_);
+  });
+  return result;
+}
+
+// get vector of avl_balance for all nodes in inorder 
+template <class T>
+std::vector<int> Adt<T>::GetInorderAvlBalanceVector() const{
+  std::vector<int> result;
+  result.reserve(0);
+  InorderTraverse(root_, [&result](const NodePtr p){
+      if(nullptr == p){
+        return;
+      }
+      result.emplace_back(p->avl_balance_);
   });
   return result;
 }
@@ -415,7 +431,7 @@ typename Adt<T>::InsertResult  Adt<T>::probe(const T& data){
         // This means that w is the new node. a, b, c, and d have height 0. After the
         // rotations, x and y have balance factor 0.
         //
-        //  Test rotation 4
+        //  Test rotate 4
         //
         x->avl_balance_ = 0;
         y->avl_balance_ = 0;
@@ -431,7 +447,8 @@ typename Adt<T>::InsertResult  Adt<T>::probe(const T& data){
     // rebalance tree after insertion in left subtree
     NodePtr x = y->avl_link_[1];
     if (x->avl_balance_ == 1){
-      // rotate left at y 
+      // rotate left at y
+      // Test rotate 5 
       w = x;
       y->avl_link_[1] =  x->avl_link_[0];
       x->avl_link_[0] = y;
@@ -446,12 +463,15 @@ typename Adt<T>::InsertResult  Adt<T>::probe(const T& data){
       y->avl_link_[1] =  w->avl_link_[0];
       w->avl_link_[0] = y;
       if (w->avl_balance_ == 1){
+        // Test rotate 6
         x->avl_balance_ = 0;
         y->avl_balance_ = -1;
       }else if (w->avl_balance_ == 0){
+        // Test rotate 7
         x->avl_balance_ = 0;
         y->avl_balance_ = 0;
       } else {
+        // Test rotate 8
         assert( w->avl_balance_ == -1);
         x->avl_balance_ = 1;
         y->avl_balance_ = 0;

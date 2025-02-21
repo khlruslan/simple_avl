@@ -87,22 +87,33 @@ void test2(){
 int main(){
   adt::Adt<int> t;
   std::vector<int> in = {100, 50};
-  std::cout << "Sequence:\n";
+  std::vector<int> source = {100, 50, 150, 25, 75, 125, 175, 12, 30, 60, 80} ;
+
   int i = 0;
-  for (int a : in){
+  for (int a : source){
     t.probe(a);
     SaveToFile(GetFileName("tree", "dot", 10 + i ), t);
     ++i;
   }
-  t.probe(75);
+  int a = 55;
+  t.probe(a);
+  source.push_back(a);
   SaveToFile(GetFileName("tree", "dot", 50 ), t);
-  std::cout << "Completed \n";
-  auto v = t.GetPreorderVector();
-  std::cout << "Preorder:\n";
-  print(std::cout, v);
+    
+  std::cout << "Sequence:\n";
+  print(std::cout, source);
   std::cout << "\n";
   auto v1 = t.GetInorderVector();
   std::cout << "Inorder:\n";
   print(std::cout, v1);
   std::cout << "\n";
+  auto v2 = t.GetInorderAvlBalanceVector();
+  std::cout << "Balance:\n";
+  print(std::cout, v2);
+  std::cout << "\n";
+  auto v = t.GetPreorderVector();
+  std::cout << "Preorder:\n";
+  print(std::cout, v);
+  std::cout << "\n";
+
 }
