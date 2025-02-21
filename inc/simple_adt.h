@@ -467,6 +467,8 @@ typename Adt<T>::InsertResult  Adt<T>::probe(const T& data){
         x->avl_balance_ = 0;
         y->avl_balance_ = -1;
       }else if (w->avl_balance_ == 0){
+        // This means that w is the new node. a, b, c, and d have height 0. After the
+        // rotations, x and y have balance factor 0.
         // Test rotate 7
         x->avl_balance_ = 0;
         y->avl_balance_ = 0;
