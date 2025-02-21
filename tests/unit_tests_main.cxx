@@ -120,7 +120,7 @@ namespace my {
         EXPECT_EQ(dt.size(), source.size());
         auto preorder = dt.GetPreorderVector();
         auto inorder = dt.GetInorderVector();
-        std::vector<int> required_balance = {{ 1, 0, 0, 0, 0, 0, -1, 0, 0, 0 }};
+        std::vector<int> required_balance = { 1, 0, 0, 0, 0, 0, -1, 0, 0, 0};
         auto avl_balance = dt.GetInorderAvlBalanceVector();
         EXPECT_EQ(required_balance, avl_balance);
         EXPECT_EQ(required_inorder, inorder);
@@ -196,6 +196,30 @@ namespace my {
         auto avl_balance = dt.GetInorderAvlBalanceVector();
         EXPECT_EQ(required_inorder, inorder);
         EXPECT_EQ(required_balance, avl_balance);
+        EXPECT_EQ(required_preorder, preorder);
+      }
+
+      TEST(AdtInt, InsertTestRotate5) {
+        /*
+         * Test rotate 5
+         */
+        auto dt = adt::Adt<int>{};
+        std::vector<int> source = {100, 50, 150, 120, 200};
+        for (int a : source){
+          dt.probe(a);
+        }
+        int a = 250;
+        dt.probe(a);
+        source.push_back(a);
+        std::vector<int> required_preorder = {150, 100, 50, 120, 200, 250};
+        std::vector<int> required_inorder = {50, 100, 120, 150, 200, 250};
+        EXPECT_EQ(dt.size(), source.size());
+        auto preorder = dt.GetPreorderVector();
+        auto inorder = dt.GetInorderVector();
+        std::vector<int> required_balance = { 0, 0, 0, 0, 1, 0};
+        auto avl_balance = dt.GetInorderAvlBalanceVector();
+        EXPECT_EQ(required_balance, avl_balance);
+        EXPECT_EQ(required_inorder, inorder);
         EXPECT_EQ(required_preorder, preorder);
       }
     }  // namespace
