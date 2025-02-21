@@ -417,7 +417,7 @@ typename Adt<T>::InsertResult  Adt<T>::probe(const T& data){
       x->avl_balance_ = y->avl_balance_ = 0;
     } else {
       // rotate left at x than right at y
-      assert(x->balance_ == +1);
+      assert(x->avl_balance_ == +1);
       w = x->avl_link_[1];
       x->avl_link_[1] = w->avl_link_[0];
       w->avl_link_[0] = x;
@@ -456,7 +456,7 @@ typename Adt<T>::InsertResult  Adt<T>::probe(const T& data){
       y->avl_balance_ = 0;
     } else {
       // rotate right at x then left at y
-      assert(x->avl_blance_ == -1);
+      assert(x->avl_balance_ == -1);
       w = x->avl_link_[0];
       x->avl_link_[0] =  w->avl_link_[1];
       w->avl_link_[1] = x;

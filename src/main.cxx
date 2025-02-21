@@ -86,8 +86,7 @@ void test2(){
 
 int main(){
   adt::Adt<int> t;
-  std::vector<int> in = {100, 50};
-  std::vector<int> source = {100, 50, 150, 25, 75, 125, 175, 12, 30, 60, 80} ;
+  std::vector<int> source = {100, 50, 150, 20, 120, 200, 110, 135, 170, 300} ;
 
   int i = 0;
   for (int a : source){
@@ -95,7 +94,7 @@ int main(){
     SaveToFile(GetFileName("tree", "dot", 10 + i ), t);
     ++i;
   }
-  int a = 55;
+  int a = 130;
   t.probe(a);
   source.push_back(a);
   SaveToFile(GetFileName("tree", "dot", 50 ), t);
