@@ -117,6 +117,8 @@ public:
   std::vector<T> GetInorderVector() const;
   // get vector of avl_balance for all nodes in inorder
   std::vector<int> GetInorderAvlBalanceVector() const;
+  // count items in range
+  int CountByRange(T first, T second) const;
 
   Iterator begin() { return end_; }
   Iterator end() { return end_; }
@@ -606,6 +608,17 @@ template <class T> typename Adt<T>::Iterator Adt<T>::find(const T &data) {
     }
   }
   return end();
+}
+
+// count items in range
+template <class T> int Adt<T>::CountByRange(T first, T second) const {
+  if (first > second) {
+    return 0;
+  }
+  if (size() == 0) {
+    return 0;
+  }
+  return 0;
 }
 
 } // namespace adt
