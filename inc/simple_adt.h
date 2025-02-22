@@ -1,4 +1,5 @@
 #pragma once
+#include <algorithm>
 #include <cassert>
 #include <compare>
 #include <cstddef>
@@ -22,18 +23,27 @@ class Adt {
   using AdtPtr = Adt *;
 
   struct AvlNode;
+
   using NodePtr = AvlNode *;
   using NodePtrStack = std::vector<NodePtr>;
   using TraceNode = std::pair<NodePtr, int>;
   using TraceNodeStack = std::vector<TraceNode>;
   using DirectionStack = std::vector<int>;
 
+  struct Tag {
+    NodePtr bound_[2] = {nullptr, nullptr}; // child range bounds
+    std::size_t count_ = 0;                 // child counter
+    void Update(NodePtr node);
+  };
+
   struct AvlNode {
     NodePtr avl_link_[2]; // subtrees
     signed char avl_balance_ = 0;
     T avl_data_;
+    Tag tag_;
     AvlNode(T data, AvlNode *left = nullptr, AvlNode *right = nullptr)
         : avl_link_{left, right}, avl_data_(data) {}
+    void Update() { tag_.Update(this); }
   };
 
 public:
@@ -99,8 +109,6 @@ public:
   Iterator find(const T &key);
   // clear Atd
   void Clear();
-  // Destroy Atd
-  void Destroy();
   // save tree to .dot file
   static void save_dot(std::ostream &os, const Adt &tree);
   // get items vector in preorder traverse
@@ -112,7 +120,7 @@ public:
 
   Iterator begin() { return end_; }
   Iterator end() { return end_; }
-  ~Adt() { Destroy(); }
+  ~Adt() { Clear(); }
 
 private:
   Iterator end_ = nullptr;
@@ -126,6 +134,8 @@ private:
   template <class O> void PreorderTraverse(NodePtr p, O o) const;
   // Post-order traversing tree
   template <class O> void PostorderTraverse(NodePtr p, O o);
+  // Update tags
+  void UpdateTags(const NodePtrStack &stack);
 
   void DumpTraceNodeStack(std::ostream &os, TraceNodeStack &tns);
 }; // class Adt
@@ -143,7 +153,18 @@ template <class T> void Adt<T>::save_dot(std::ostream &os, const Adt &tree) {
     }
     os << "  node" << p->avl_data_ << "[label=\"<f0>|<f2> " << p->avl_data_
        << "\\n"
-       << static_cast<int>(p->avl_balance_) << " |<f1>\"];\n";
+       << p->tag_.count_ << "\\n [";
+    for (int i = 0; i < 2; ++i) {
+      if (p->tag_.bound_[i] == nullptr) {
+        os << " - ";
+      } else {
+        os << " " << p->tag_.bound_[i]->avl_data_ << " ";
+      }
+      if (i == 0) {
+        os << " ; ";
+      }
+    }
+    os << "]\\n" << static_cast<int>(p->avl_balance_) << " |<f1>\"];\n";
   });
 
   // print edges
@@ -278,10 +299,10 @@ void Adt<T>::PreorderTraverse(typename Adt<T>::NodePtr node, O o) const {
 }
 //
 //
-// Destroy Avl tree by right rotations and delete root node which has oly right
+// Clear Avl tree by right rotations and delete root node which has oly right
 // child
 //
-template <class T> void Adt<T>::Destroy() {
+template <class T> void Adt<T>::Clear() {
   NodePtr p, q;
   for (p = root_; nullptr != p; p = q) {
     if (nullptr == p->avl_link_[0]) { // we have only right child
@@ -295,11 +316,6 @@ template <class T> void Adt<T>::Destroy() {
   }
   size_ = 0;
   root_ = nullptr;
-}
-
-template <class T> void Adt<T>::Clear() {
-  PostorderTraverse(root_, [](NodePtr p) { delete p; });
-  size_ = 0;
 }
 
 // In-order traverse and free nodes
@@ -349,6 +365,44 @@ void Adt<T>::DumpTraceNodeStack(std::ostream &os,
   }
 }
 
+template <class T> void Adt<T>::Tag::Update(NodePtr node) {
+  if (nullptr == node) {
+    count_ = 0;
+    bound_[0] = nullptr;
+    bound_[1] = nullptr;
+    return;
+  }
+#ifdef my_debug_1
+  std::cerr << __FUNCTION__ << " node: " << node->avl_data_ << " count_"
+            << count_ << "  ";
+#endif
+  count_ = 1;
+  for (int i = 0; i < 2; ++i) {
+    if (node->avl_link_[i] != nullptr) {
+      bound_[i] = node->avl_link_[i]->tag_.bound_[i];
+      count_ += node->avl_link_[i]->tag_.count_;
+#ifdef my_debug_1
+      std::cerr << " dir:" << i << " data:" << node->avl_link_[i]->avl_data_
+                << " "
+                << " count:" << node->avl_link_[i]->tag_.count_ << " ";
+#endif
+    } else {
+      bound_[i] = node;
+#ifdef my_debug_1
+      std::cerr << " dir:" << i << " data:" << node->avl_data_ << " null ";
+#endif
+    }
+  }
+#ifdef my_debug_1
+  std::cerr << "final  count_" << count_ << "  "
+            << "\n";
+#endif
+}
+
+// Update Tags in nodes from stack
+template <class T> void Adt<T>::UpdateTags(const NodePtrStack &stack) {
+  std::for_each(stack.crbegin(), stack.crend(), [](NodePtr p) { p->Update(); });
+}
 // probe inserts element into the container, if the container doesn't already
 // contain an element with an equivalent key.
 template <class T> typename Adt<T>::InsertResult Adt<T>::probe(const T &data) {
@@ -365,6 +419,9 @@ template <class T> typename Adt<T>::InsertResult Adt<T>::probe(const T &data) {
   z = &dummy;
   y = root_;
 
+#ifdef my_debug_1
+  std::cerr << __FUNCTION__ << " data: " << data << "\n";
+#endif
   // Step 1 : Search new node position
   for (q = z, p = y; nullptr != p;
        q = p, stack.push_back(p), p = p->avl_link_[dir]) {
@@ -383,14 +440,18 @@ template <class T> typename Adt<T>::InsertResult Adt<T>::probe(const T &data) {
   }
   // Step 2 : Insert
   n = new AvlNode(data);
+  n->Update();
   ++size_;
   q->avl_link_[dir] = n;
+
   if (nullptr == y) { // Tree was empty
     root_ = dummy.avl_link_[0];
     return std::make_pair(Iterator(this, root_), false);
   }
 
+  UpdateTags(stack);
   stack.push_back(n);
+
   // Step 3 : Update balance factor
   int k = 0;
   for (p = y; p != n; p = p->avl_link_[da[k]], ++k) {
@@ -412,6 +473,8 @@ template <class T> typename Adt<T>::InsertResult Adt<T>::probe(const T &data) {
       y->avl_link_[0] = x->avl_link_[1];
       x->avl_link_[1] = y;
       x->avl_balance_ = y->avl_balance_ = 0;
+      y->Update();
+      w->Update();
     } else {
       // rotate left at x than right at y
       assert(x->avl_balance_ == +1);
@@ -420,6 +483,10 @@ template <class T> typename Adt<T>::InsertResult Adt<T>::probe(const T &data) {
       w->avl_link_[0] = x;
       y->avl_link_[0] = w->avl_link_[1];
       w->avl_link_[1] = y;
+
+      x->Update();
+      y->Update();
+      w->Update();
       if (w->avl_balance_ == -1) {
         // Test rotate 2
         x->avl_balance_ = 0;
@@ -451,6 +518,9 @@ template <class T> typename Adt<T>::InsertResult Adt<T>::probe(const T &data) {
       x->avl_link_[0] = y;
       x->avl_balance_ = 0;
       y->avl_balance_ = 0;
+
+      y->Update();
+      w->Update();
     } else {
       // rotate right at x then left at y
       assert(x->avl_balance_ == -1);
@@ -459,6 +529,10 @@ template <class T> typename Adt<T>::InsertResult Adt<T>::probe(const T &data) {
       w->avl_link_[1] = x;
       y->avl_link_[1] = w->avl_link_[0];
       w->avl_link_[0] = y;
+
+      x->Update();
+      y->Update();
+      w->Update();
       if (w->avl_balance_ == 1) {
         // Test rotate 6
         x->avl_balance_ = 0;
@@ -492,6 +566,7 @@ template <class T> typename Adt<T>::InsertResult Adt<T>::probe(const T &data) {
     }
   }
   assert(z == &dummy || stack.back() == z);
+
   // Add required nodes to iterator
   p = w;
   while (nullptr != p) {
@@ -508,100 +583,12 @@ template <class T> typename Adt<T>::InsertResult Adt<T>::probe(const T &data) {
   return std::make_pair(Iterator(this, std::move(stack)), false);
 }
 
-// probe inserts element into the container, if the container doesn't already
-// contain an element with an equivalent key.
-template <class T>
-typename Adt<T>::InsertResult Adt<T>::probe_root(const T &data) {
-  NodePtr p, n;
-  TraceNodeStack trace_stack;
-  trace_stack.reserve(kMaxStack);
-
-  AvlNode dummy(T{}, root_);
-  trace_stack.emplace_back(&dummy, 0); // this dummy node
-
-  NodePtrStack stack;
-  stack.reserve(kMaxStack);
-
-  int dir;
-
-  for (p = root_; p != nullptr; p = p->avl_link_[dir]) {
-    auto cmp = data <=> p->avl_data_;
-    if (cmp == std::strong_ordering::equal) {
-      return std::make_pair(Iterator(this, std::move(stack)), false);
-    }
-    stack.push_back(p); // for iterator
-
-    dir = cmp == std::strong_ordering::greater;
-    trace_stack.emplace_back(
-        p, dir); // save current node and direction in to trace_stack
-#ifdef my_debug_1
-    std::cout << "trace_stack: " << trace_stack.back().first->avl_data_
-              << " direction:" << trace_stack.back().second << "\n";
-#endif
-  }
-
-  n = new AvlNode(data);
-  ++size_;
-
-  // attach new node to previous node
-  TraceNode tp = trace_stack.back();
-  tp.first->avl_link_[tp.second] = n;
-
-#ifdef my_debug_1
-  save_dot(std::cerr, *this);
-  DumpTraceNodeStack(std::cout, trace_stack);
-#endif
-
-  // move inserted node to root
-  for (; trace_stack.size() > 1;) {
-    p = tp.first;
-    dir = tp.second;
-    trace_stack.pop_back();
-    if (dir == 0) { // perform right rotation
-      p->avl_link_[0] = n->avl_link_[1];
-      n->avl_link_[1] = p;
-    } else { // perform left rotation
-      p->avl_link_[1] = n->avl_link_[0];
-      n->avl_link_[0] = p;
-    }
-
-    tp = trace_stack.back();
-    tp.first->avl_link_[tp.second] = n;
-  } // for
-
-  root_ = dummy.avl_link_[0];
-  return std::make_pair(Iterator(this, root_), true);
-}
-
 // Inserts element into the container, if the container doesn't already contain
 // an element with an equivalent key.
 template <class T> typename Adt<T>::InsertResult Adt<T>::insert(const T &data) {
-  NodePtr p, q, n;
-  NodePtrStack stack;
-  stack.reserve(kMaxStack);
-
-  int dir;
-
-  for (q = nullptr, p = root_; p != nullptr;
-       q = p, stack.push_back(q), p = p->avl_link_[dir]) {
-    auto cmp = data <=> p->avl_data_;
-    if (cmp == 0) {
-      return std::make_pair(Iterator(this, std::move(stack)), false);
-    }
-    dir = cmp > 0;
-  }
-
-  n = new AvlNode(data);
-  ++size_;
-  if (q != nullptr) {
-    q->avl_link_[dir] = n;
-  } else {
-    root_ = n;
-  }
-  return std::make_pair(Iterator(this, std::move(stack)), true);
+  return probe(data);
 }
 
-// TODO CONTINUE FROM PAGE 38
 // find node equal key , if not found = return end()
 template <class T> typename Adt<T>::Iterator Adt<T>::find(const T &data) {
   NodePtrStack stack;

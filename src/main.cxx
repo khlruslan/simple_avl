@@ -84,7 +84,7 @@ void test2() {
   std::cout << "\n";
 }
 
-int main() {
+void test3() {
   adt::Adt<int> t;
   std::vector<int> source = {100, 50, 150, 20, 120, 200, 110, 135, 170, 300};
 
@@ -115,3 +115,5 @@ int main() {
   print(std::cout, v);
   std::cout << "\n";
 }
+
+int main() { test2(); }
