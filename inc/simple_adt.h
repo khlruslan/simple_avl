@@ -12,6 +12,12 @@
 #define my_debug
 
 namespace adt {
+
+template <class T> bool Intersect(T str1, T end1, T str2, T end2) {
+  T str_max = std::max(str1, str2);
+  T end_min = std::min(end1, end2);
+  return str_max <= end_min;
+}
 template <class T>
 // ADT -  Abstract Data Table
 class Adt {
@@ -612,13 +618,50 @@ template <class T> typename Adt<T>::Iterator Adt<T>::find(const T &data) {
 
 // count items in range
 template <class T> int Adt<T>::CountByRange(T first, T second) const {
+#ifdef my_debug_1
+  std::cerr << __FUNCTION__ << " first:" << first << " , "
+            << "second:" << second << "\n";
+#endif
   if (first > second) {
     return 0;
   }
   if (size() == 0) {
     return 0;
   }
-  return 0;
+
+  NodePtr p;
+  int result = 0;
+  NodePtrStack stack;
+  stack.reserve(kMaxStack * 3);
+  p = root_;
+  T n_first;
+  T n_second;
+
+  stack.emplace_back(p); // check child node
+
+  while (!stack.empty()) {
+    p = stack.back();
+    stack.pop_back();
+#ifdef my_debug_1
+    std::cerr << "Current node:" << p->avl_data_ << "\n";
+#endif
+    n_first = p->tag_.bound_[0]->avl_data_;
+    n_second = p->tag_.bound_[1]->avl_data_;
+
+    if (first <= n_first && n_second <= second) {
+      result += p->tag_.count_;
+    } else if (Intersect(first, second, n_first, n_second)) {
+      if (first <= p->avl_data_ && p->avl_data_ <= second) {
+        ++result;
+      }
+      for (int i = 0; i < 2; ++i) {
+        if (nullptr != p->avl_link_[i])
+          stack.emplace_back(p->avl_link_[i]); // check child node
+      }
+    }
+  }
+
+  return result;
 }
 
 } // namespace adt
