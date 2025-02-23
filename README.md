@@ -1,6 +1,6 @@
 # simple_avl
 The simple avl  tree template. 
-[avl-tree with segments info in nodes](https://github.com/khlruslan/simple_avl/blob/main/search_avl_example.png?raw=true)
+![avl-tree with segments info in nodes](https://github.com/khlruslan/simple_avl/blob/main/search_avl_example.png?raw=true)
 
 AVL-tree template used for :
 - insert numbers in avl-tree
