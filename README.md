@@ -6,6 +6,6 @@ The code from [libavl](https://adtinfo.org/) is used to implement avl.
 
 AVL-tree template used for :
 - insert numbers in avl-tree
-- processing requests for the number of numbers per segment . Information about the range of values and the number of child elements in each node of the tree is used to quickly process requests for counting the number of elements in a numerical segment. The complexity estimate is O(log N).
+- processing requests for the number of elements in a numerical segment. Information about the range of values and the number of child elements in each node of the tree is used to quickly process requests for counting the number of elements in a numerical segment. The complexity estimate is O(log N).
 
 For comparison, similar requests are processed via std::set. The complexity estimate is O(N). 
