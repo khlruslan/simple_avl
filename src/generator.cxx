@@ -30,10 +30,10 @@ int main()
   std::uniform_int_distribution<> distrib(first, last);
 
   int k = 100;
-  int mul = 100;
+  int mul = 10;
   int scale = 5;
 
-  for (int n = 0; n < 4; ++n){
+  for (int n = 2; n < 8; ++n){
     auto file_name = GetFileName("","dat",n);
     std::ofstream out(file_name);
     for (int i = 0; i < k ; ++i){
@@ -45,9 +45,7 @@ int main()
         out << kKey << ' ' << distrib(gen) << ' ';
       }
     }
-    int a = distrib(gen);
-    int b = distrib(gen);
-    out << kQuery << ' ' << std::min(a, b)  << ' '<< std::max(a, b) << '\n';
+    out << kQuery << ' ' << first  << ' '<< last << '\n';
     k *= mul;
   }
 }
