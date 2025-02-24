@@ -434,7 +434,7 @@ template <class T> typename Adt<T>::InsertResult Adt<T>::probe(const T &data) {
   for (q = z, p = y; nullptr != p;
        q = p, stack.push_back(p), p = p->avl_link_[dir]) {
     auto cmp = data <=> p->avl_data_;
-    if (cmp == std::strong_ordering::equal) {
+    if (cmp == 0) {
       return std::make_pair(Iterator(this, std::move(stack)), false);
     }
     if (p->avl_balance_ !=
@@ -443,7 +443,7 @@ template <class T> typename Adt<T>::InsertResult Adt<T>::probe(const T &data) {
       y = p;
       da.resize(0);
     }
-    dir = cmp == std::strong_ordering::greater;
+    dir = cmp > 0;
     da.push_back(dir);
   }
   // Step 2 : Insert
@@ -580,10 +580,10 @@ template <class T> typename Adt<T>::InsertResult Adt<T>::probe(const T &data) {
   while (nullptr != p) {
     stack.push_back(p);
     auto cmp = data <=> p->avl_data_;
-    if (cmp == std::strong_ordering::equal) {
+    if (cmp == 0) {
       p = nullptr;
     } else {
-      dir = cmp == std::strong_ordering::greater;
+      dir = cmp > 0;
       p = p->avl_link_[dir];
     }
   }
