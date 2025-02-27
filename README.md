@@ -8,4 +8,21 @@ AVL-tree template used for :
 - insert numbers in avl-tree
 - processing requests for the number of elements in a numerical segment. Information about the range of values and the number of child elements in each node of the tree is used to quickly process requests for counting the number of elements in a numerical segment. The complexity estimate is O(log N).
 
-For comparison, similar requests are processed via std::set. The complexity estimate is O(N). 
+<p>
+  Requests:
+  - k number . Insert one key.
+  - q number1 number2 . Get number of elements in a numerical segment [number1, number2]
+</p>
+
+<p>For comparison, similar requests are processed via std::set. The complexity estimate is O(N). 
+</p>
+<p> Example:
+</p>
+<p>
+ k 10 k 20 q 8 31 q 6 9 k 30 k 40 q 15 40
+</p>
+<p> Answer:
+</p>
+<p>
+ 2 0 3
+</p>
