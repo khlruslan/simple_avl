@@ -37,7 +37,7 @@ class Adt {
   using TraceNodeStack = std::vector<TraceNode>;
   using DirectionStack = std::vector<int>;
 
-  using reference = T&;
+  using reference = T &;
 
   struct Tag {
     NodePtr bound_[2] = {nullptr, nullptr}; // child range bounds
@@ -56,7 +56,7 @@ class Adt {
   };
 
 public:
-  class Iterator{
+  class Iterator {
     AdtPtr ptr_ = nullptr;
     NodePtrStack stack_;
 
@@ -77,25 +77,21 @@ public:
     }
 
   public:
-    using iterator_category = std::forward_iterator_tag; 
+    using iterator_category = std::forward_iterator_tag;
     using value_type = T;
     using difference_type = std::ptrdiff_t;
-    using pointer = const T*;
-    using reference = const T&;
+    using pointer = const T *;
+    using reference = const T &;
 
     friend class Adt;
 
-    reference operator*(){
-      return stack_.back()->avl_data_;
-    } 
+    reference operator*() { return stack_.back()->avl_data_; }
 
-    pointer operator->(){
-      return &(stack_.back()->avl_data_);
-    }
+    pointer operator->() { return &(stack_.back()->avl_data_); }
 
-    std::vector<T>  dump() {
+    std::vector<T> dump() {
       std::vector<T> result;
-      if (ptr_ != nullptr){
+      if (ptr_ != nullptr) {
         return result;
       }
       result.reserve(kMaxStack);
@@ -111,35 +107,35 @@ public:
 
     bool operator==(const Iterator &rhs) const { return is_equal(*this, rhs); }
 
-    Iterator& operator++(){
-        // actual increment takes place here
-        NodePtr p = nullptr;
-        if (stack_.empty()){
-          return *this;
+    Iterator &operator++() {
+      // actual increment takes place here
+      NodePtr p = nullptr;
+      if (stack_.empty()) {
+        return *this;
+      }
+      // try to move right
+      if (stack_.back()->avl_link_[1] != nullptr) {
+        p = stack_.back()->avl_link_[1];
+        while (p != nullptr) {
+          stack_.emplace_back(p);
+          p = p->avl_link_[0];
         }
-        // try to move right
-        if (stack_.back()->avl_link_[1] != nullptr){
-          p = stack_.back()->avl_link_[1];
-          while (p != nullptr){
-            stack_.emplace_back(p);
-            p = p->avl_link_[0];
-          }
-          return *this;
-        }
+        return *this;
+      }
 
-        // try to move up
+      // try to move up
+      p = stack_.back();
+      stack_.pop_back();
+
+      while (!stack_.empty() && stack_.back()->avl_link_[1] == p) {
         p = stack_.back();
         stack_.pop_back();
-
-        while(!stack_.empty() && stack_.back()->avl_link_[1] == p){
-          p = stack_.back();
-          stack_.pop_back();
-        }
-        return *this; // return new value by reference
+      }
+      return *this; // return new value by reference
     }
 
-    Iterator operator++(int){
-      Iterator retval = *this; 
+    Iterator operator++(int) {
+      Iterator retval = *this;
       ++(*this);
       return retval;
     }
@@ -181,15 +177,15 @@ public:
   // count items in range
   int CountByRange(T first, T second) const;
 
-  Iterator begin() { 
-    NodePtrStack result; 
-    result.reserve(kMaxStack); 
+  Iterator begin() {
+    NodePtrStack result;
+    result.reserve(kMaxStack);
     NodePtr p = root_;
-    while ( nullptr != p ){
+    while (nullptr != p) {
       result.emplace_back(p);
       p = p->avl_link_[0];
     }
-    return Iterator (this, std::move(result)); 
+    return Iterator(this, std::move(result));
   }
   Iterator end() { return Iterator(this); }
   ~Adt() { Clear(); }
@@ -208,7 +204,7 @@ private:
   // Update tags
   void UpdateTags(const NodePtrStack &stack);
   // get begin() iterator from root node
-  void GetFirstItem(NodePtr root, NodePtrStack& result);
+  void GetFirstItem(NodePtr root, NodePtrStack &result);
 
   void DumpTraceNodeStack(std::ostream &os, TraceNodeStack &tns);
 }; // class Adt

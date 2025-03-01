@@ -1,11 +1,11 @@
 #include <fstream>
-#include <iterator>
 #include <iomanip>
 #include <iostream>
+#include <iterator>
+#include <set>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <set>
 
 namespace sol {
 const char kKey = 'k';
@@ -15,11 +15,11 @@ const int kOk = 1;
 const int kInputError = 2;
 
 template <typename C, typename T> int range_query(const C &s, T fst, T snd) {
-	if (fst > snd){
-		return 0;
-	}
-	auto it1 = s.lower_bound(fst);
-	auto it2 = s.upper_bound(snd);
+  if (fst > snd) {
+    return 0;
+  }
+  auto it1 = s.lower_bound(fst);
+  auto it2 = s.upper_bound(snd);
 
   return std::distance(it1, it2);
 }

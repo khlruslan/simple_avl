@@ -1,8 +1,8 @@
 #include "simple_adt.h"
 
 #include <gtest/gtest.h>
-#include <vector>
 #include <iterator>
+#include <vector>
 
 namespace my {
 namespace project {
@@ -316,8 +316,9 @@ TEST(AdtInt, InsertTestRotate8) {
 
 TEST(AdtInt, IteratorTest) {
   auto dt = adt::Adt<int>{};
-  std::vector<int> source = {100, 50, 150, 20, 120, 200, 110, 135, 170, 300, 105};
-  
+  std::vector<int> source = {100, 50,  150, 20,  120, 200,
+                             110, 135, 170, 300, 105};
+
   EXPECT_EQ(dt.begin(), dt.end());
 
   for (int a : source) {
@@ -329,7 +330,7 @@ TEST(AdtInt, IteratorTest) {
   std::vector<int> inorder;
   inorder.reserve(dt.size());
 
-  for (auto it = dt.begin(), it_end = dt.end() ; it != it_end ; ++it){
+  for (auto it = dt.begin(), it_end = dt.end(); it != it_end; ++it) {
     inorder.emplace_back(*it);
   }
 
@@ -338,8 +339,9 @@ TEST(AdtInt, IteratorTest) {
 
 TEST(AdtInt, IteratorPreincrementTest) {
   auto dt = adt::Adt<int>{};
-  std::vector<int> source = {100, 50, 150, 20, 120, 200, 110, 135, 170, 300, 105};
-  
+  std::vector<int> source = {100, 50,  150, 20,  120, 200,
+                             110, 135, 170, 300, 105};
+
   EXPECT_EQ(dt.begin(), dt.end());
 
   for (int a : source) {
@@ -353,8 +355,8 @@ TEST(AdtInt, IteratorPreincrementTest) {
   inorder.reserve(dt.size());
 
   auto it = dt.begin();
-  auto it_end = dt.end(); 
-  for (; it != it_end ; ){
+  auto it_end = dt.end();
+  for (; it != it_end;) {
     inorder.emplace_back(*(it++));
   }
 
@@ -363,9 +365,11 @@ TEST(AdtInt, IteratorPreincrementTest) {
 
 TEST(AdtInt, IteratorIteratorTraitsTest) {
   auto dt = adt::Adt<int>{};
-  std::vector<int> source = {100, 50, 150, 20, 120, 200, 110, 135, 170, 300, 105};
-  
-  EXPECT_EQ(typeid(typename std::iterator_traits<adt::Adt<int>::iterator>::iterator_category), 
+  std::vector<int> source = {100, 50,  150, 20,  120, 200,
+                             110, 135, 170, 300, 105};
+
+  EXPECT_EQ(typeid(typename std::iterator_traits<
+                   adt::Adt<int>::iterator>::iterator_category),
             typeid(std::forward_iterator_tag));
 }
 } // namespace
