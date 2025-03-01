@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <ios>      // boolalpha
 #include <iostream> //
+#include <iterator> //
 #include <memory>
 #include <utility>
 #include <vector>
@@ -55,7 +56,7 @@ class Adt {
   };
 
 public:
-  class Iterator {
+  class Iterator{
     AdtPtr ptr_ = nullptr;
     NodePtrStack stack_;
 
@@ -76,12 +77,21 @@ public:
     }
 
   public:
-    
+    using iterator_category = std::forward_iterator_tag; 
+    using value_type = T;
+    using difference_type = std::ptrdiff_t;
+    using pointer = const T*;
+    using reference = const T&;
+
     friend class Adt;
 
     reference operator*(){
       return stack_.back()->avl_data_;
     } 
+
+    pointer operator->(){
+      return &(stack_.back()->avl_data_);
+    }
 
     std::vector<T>  dump() {
       std::vector<T> result;
@@ -126,6 +136,12 @@ public:
           stack_.pop_back();
         }
         return *this; // return new value by reference
+    }
+
+    Iterator operator++(int){
+      Iterator retval = *this; 
+      ++(*this);
+      return retval;
     }
   };
 

@@ -2,6 +2,7 @@
 
 #include <gtest/gtest.h>
 #include <vector>
+#include <iterator>
 
 namespace my {
 namespace project {
@@ -333,6 +334,39 @@ TEST(AdtInt, IteratorTest) {
   }
 
   EXPECT_EQ(required_inorder, inorder);
+}
+
+TEST(AdtInt, IteratorPreincrementTest) {
+  auto dt = adt::Adt<int>{};
+  std::vector<int> source = {100, 50, 150, 20, 120, 200, 110, 135, 170, 300, 105};
+  
+  EXPECT_EQ(dt.begin(), dt.end());
+
+  for (int a : source) {
+    dt.probe(a);
+  }
+  std::vector<int> required_inorder = {20,  50,  100, 105, 110, 120,
+                                       135, 150, 170, 200, 300};
+
+  EXPECT_EQ(dt.size(), source.size());
+  std::vector<int> inorder;
+  inorder.reserve(dt.size());
+
+  auto it = dt.begin();
+  auto it_end = dt.end(); 
+  for (; it != it_end ; ){
+    inorder.emplace_back(*(it++));
+  }
+
+  EXPECT_EQ(required_inorder, inorder);
+}
+
+TEST(AdtInt, IteratorIteratorTraitsTest) {
+  auto dt = adt::Adt<int>{};
+  std::vector<int> source = {100, 50, 150, 20, 120, 200, 110, 135, 170, 300, 105};
+  
+  EXPECT_EQ(typeid(typename std::iterator_traits<adt::Adt<int>::iterator>::iterator_category), 
+            typeid(std::forward_iterator_tag));
 }
 } // namespace
 } // namespace project
