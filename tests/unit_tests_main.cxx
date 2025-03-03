@@ -314,7 +314,7 @@ TEST(AdtInt, InsertTestRotate8) {
   EXPECT_EQ(required_preorder, preorder);
 }
 
-TEST(AdtInt, IteratorTest) {
+TEST(AdtInt, IteratorIncrementTest) {
   auto dt = adt::Adt<int>{};
   std::vector<int> source = {100, 50,  150, 20,  120, 200,
                              110, 135, 170, 300, 105};
@@ -337,7 +337,7 @@ TEST(AdtInt, IteratorTest) {
   EXPECT_EQ(required_inorder, inorder);
 }
 
-TEST(AdtInt, IteratorPreincrementTest) {
+TEST(AdtInt, IteratorPostincrementTest) {
   auto dt = adt::Adt<int>{};
   std::vector<int> source = {100, 50,  150, 20,  120, 200,
                              110, 135, 170, 300, 105};
@@ -363,6 +363,82 @@ TEST(AdtInt, IteratorPreincrementTest) {
   EXPECT_EQ(required_inorder, inorder);
 }
 
+TEST(AdtInt, IteratorDecrementTest) {
+  auto dt = adt::Adt<int>{};
+  std::vector<int> source = {100, 50,  150, 20,  140, 160,
+                             130, 155, 170, 10, 60};
+
+  EXPECT_EQ(dt.begin(), dt.end());
+
+  for (int a : source) {
+    dt.probe(a);
+  }
+  std::vector<int> required_inorder = {10,  20,  50, 60, 100, 130,
+                                       140, 150, 155, 160, 170};
+  EXPECT_EQ(dt.size(), source.size());
+  auto inorder = dt.GetInorderVector();
+  EXPECT_EQ(required_inorder, inorder);
+  auto it = dt.begin();
+  auto it_end = dt.end();
+  for (; *it != required_inorder.back() && it != it_end; ++it) {
+  }
+  EXPECT_NE(it, dt.end());
+  EXPECT_EQ(*it, required_inorder.back());
+
+  std::vector<int> reverse_order;
+  reverse_order.reserve(dt.size());
+  
+  it_end = dt.begin();
+
+  for ( ; it != it_end; --it) {
+    reverse_order.emplace_back(*it);
+  }
+  EXPECT_EQ(it_end, it);
+  reverse_order.emplace_back(*it);
+
+  std::reverse(required_inorder.begin(), required_inorder.end());
+
+  EXPECT_EQ(required_inorder, reverse_order);
+}
+
+TEST(AdtInt, IteratorPostDecrementTest) {
+  auto dt = adt::Adt<int>{};
+  std::vector<int> source = {100, 50,  150, 20,  140, 160,
+                             130, 155, 170, 10, 60};
+
+  EXPECT_EQ(dt.begin(), dt.end());
+
+  for (int a : source) {
+    dt.probe(a);
+  }
+  std::vector<int> required_inorder = {10,  20,  50, 60, 100, 130,
+                                       140, 150, 155, 160, 170};
+  EXPECT_EQ(dt.size(), source.size());
+  auto inorder = dt.GetInorderVector();
+  EXPECT_EQ(required_inorder, inorder);
+  auto it = dt.begin();
+  auto it_end = dt.end();
+  for (; *it != required_inorder.back() && it != it_end; ++it) {
+  }
+  EXPECT_NE(it, dt.end());
+  EXPECT_EQ(*it, required_inorder.back());
+
+  std::vector<int> reverse_order;
+  reverse_order.reserve(dt.size());
+  
+  it_end = dt.begin();
+
+  for ( ; it != it_end; ) {
+    reverse_order.emplace_back(*(it--));
+  }
+  EXPECT_EQ(it_end, it);
+  reverse_order.emplace_back(*it);
+
+  std::reverse(required_inorder.begin(), required_inorder.end());
+
+  EXPECT_EQ(required_inorder, reverse_order);
+}
+
 TEST(AdtInt, IteratorIteratorTraitsTest) {
   auto dt = adt::Adt<int>{};
   std::vector<int> source = {100, 50,  150, 20,  120, 200,
@@ -370,7 +446,7 @@ TEST(AdtInt, IteratorIteratorTraitsTest) {
 
   EXPECT_EQ(typeid(typename std::iterator_traits<
                    adt::Adt<int>::iterator>::iterator_category),
-            typeid(std::forward_iterator_tag));
+            typeid(std::bidirectional_iterator_tag));
 }
 } // namespace
 } // namespace project

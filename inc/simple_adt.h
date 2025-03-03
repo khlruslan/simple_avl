@@ -77,7 +77,7 @@ public:
     }
 
   public:
-    using iterator_category = std::forward_iterator_tag;
+    using iterator_category = std::bidirectional_iterator_tag;
     using value_type = T;
     using difference_type = std::ptrdiff_t;
     using pointer = const T *;
@@ -116,6 +116,7 @@ public:
       // try to move right
       if (stack_.back()->avl_link_[1] != nullptr) {
         p = stack_.back()->avl_link_[1];
+        // and now move to left node (smallest)
         while (p != nullptr) {
           stack_.emplace_back(p);
           p = p->avl_link_[0];
@@ -137,6 +138,38 @@ public:
     Iterator operator++(int) {
       Iterator retval = *this;
       ++(*this);
+      return retval;
+    }
+
+    Iterator &operator--() {
+      NodePtr p = nullptr;
+      if (stack_.empty()){
+        return *this;
+      }
+      // try to move left
+      if (stack_.back()->avl_link_[0] != nullptr){
+        p = stack_.back()->avl_link_[0]; 
+        // and now move right to bigest child
+        while ( p!= nullptr ){
+          stack_.emplace_back(p);
+          p = p->avl_link_[1];
+        }
+        return *this;
+      }
+
+      // try to move up
+      p = stack_.back();
+      stack_.pop_back();
+      while (!stack_.empty() && stack_.back()->avl_link_[0] == p){
+        p = stack_.back();
+        stack_.pop_back();
+      }
+      return *this;
+    }
+
+    Iterator operator--(int) {
+      Iterator retval = *this;
+      --(*this);
       return retval;
     }
   };
