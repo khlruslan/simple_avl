@@ -365,15 +365,14 @@ TEST(AdtInt, IteratorPostincrementTest) {
 
 TEST(AdtInt, IteratorDecrementTest) {
   auto dt = adt::Adt<int>{};
-  std::vector<int> source = {100, 50,  150, 20,  140, 160,
-                             130, 155, 170, 10, 60};
+  std::vector<int> source = {100, 50, 150, 20, 140, 160, 130, 155, 170, 10, 60};
 
   EXPECT_EQ(dt.begin(), dt.end());
 
   for (int a : source) {
     dt.probe(a);
   }
-  std::vector<int> required_inorder = {10,  20,  50, 60, 100, 130,
+  std::vector<int> required_inorder = {10,  20,  50,  60,  100, 130,
                                        140, 150, 155, 160, 170};
   EXPECT_EQ(dt.size(), source.size());
   auto inorder = dt.GetInorderVector();
@@ -387,10 +386,10 @@ TEST(AdtInt, IteratorDecrementTest) {
 
   std::vector<int> reverse_order;
   reverse_order.reserve(dt.size());
-  
+
   it_end = dt.begin();
 
-  for ( ; it != it_end; --it) {
+  for (; it != it_end; --it) {
     reverse_order.emplace_back(*it);
   }
   EXPECT_EQ(it_end, it);
@@ -403,15 +402,14 @@ TEST(AdtInt, IteratorDecrementTest) {
 
 TEST(AdtInt, IteratorPostDecrementTest) {
   auto dt = adt::Adt<int>{};
-  std::vector<int> source = {100, 50,  150, 20,  140, 160,
-                             130, 155, 170, 10, 60};
+  std::vector<int> source = {100, 50, 150, 20, 140, 160, 130, 155, 170, 10, 60};
 
   EXPECT_EQ(dt.begin(), dt.end());
 
   for (int a : source) {
     dt.probe(a);
   }
-  std::vector<int> required_inorder = {10,  20,  50, 60, 100, 130,
+  std::vector<int> required_inorder = {10,  20,  50,  60,  100, 130,
                                        140, 150, 155, 160, 170};
   EXPECT_EQ(dt.size(), source.size());
   auto inorder = dt.GetInorderVector();
@@ -425,10 +423,10 @@ TEST(AdtInt, IteratorPostDecrementTest) {
 
   std::vector<int> reverse_order;
   reverse_order.reserve(dt.size());
-  
+
   it_end = dt.begin();
 
-  for ( ; it != it_end; ) {
+  for (; it != it_end;) {
     reverse_order.emplace_back(*(it--));
   }
   EXPECT_EQ(it_end, it);

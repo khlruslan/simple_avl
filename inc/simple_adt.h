@@ -143,14 +143,14 @@ public:
 
     Iterator &operator--() {
       NodePtr p = nullptr;
-      if (stack_.empty()){
+      if (stack_.empty()) {
         return *this;
       }
       // try to move left
-      if (stack_.back()->avl_link_[0] != nullptr){
-        p = stack_.back()->avl_link_[0]; 
+      if (stack_.back()->avl_link_[0] != nullptr) {
+        p = stack_.back()->avl_link_[0];
         // and now move right to bigest child
-        while ( p!= nullptr ){
+        while (p != nullptr) {
           stack_.emplace_back(p);
           p = p->avl_link_[1];
         }
@@ -160,7 +160,7 @@ public:
       // try to move up
       p = stack_.back();
       stack_.pop_back();
-      while (!stack_.empty() && stack_.back()->avl_link_[0] == p){
+      while (!stack_.empty() && stack_.back()->avl_link_[0] == p) {
         p = stack_.back();
         stack_.pop_back();
       }
