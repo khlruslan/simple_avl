@@ -529,6 +529,7 @@ template <class T> typename Adt<T>::InsertResult Adt<T>::probe(const T &data) {
        q = p, stack.push_back(p), p = p->avl_link_[dir]) {
     auto cmp = data <=> p->avl_data_;
     if (cmp == 0) {
+      // false - item was not inserted
       return std::make_pair(Iterator(this, std::move(stack)), false);
     }
     if (p->avl_balance_ !=
@@ -548,7 +549,8 @@ template <class T> typename Adt<T>::InsertResult Adt<T>::probe(const T &data) {
 
   if (nullptr == y) { // Tree was empty
     root_ = dummy.avl_link_[0];
-    return std::make_pair(Iterator(this, root_), false);
+    // true - new item was inserted
+    return std::make_pair(Iterator(this, root_), true);
   }
 
   UpdateTags(stack);
@@ -655,7 +657,8 @@ template <class T> typename Adt<T>::InsertResult Adt<T>::probe(const T &data) {
   } else { // no need to rebalance tree . stack contains all nodes to inserted
            // node
     root_ = dummy.avl_link_[0];
-    return std::make_pair(Iterator(this, std::move(stack)), false);
+    // true - inserted
+    return std::make_pair(Iterator(this, std::move(stack)), true);
   }
   // connect rebalanced tree to parent node z
   z->avl_link_[y != z->avl_link_[0]] = w;
@@ -681,8 +684,8 @@ template <class T> typename Adt<T>::InsertResult Adt<T>::probe(const T &data) {
       p = p->avl_link_[dir];
     }
   }
-
-  return std::make_pair(Iterator(this, std::move(stack)), false);
+  // true - intem inserted
+  return std::make_pair(Iterator(this, std::move(stack)), true);
 }
 
 // Inserts element into the container, if the container doesn't already contain
