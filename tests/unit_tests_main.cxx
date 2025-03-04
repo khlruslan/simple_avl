@@ -16,22 +16,22 @@ TEST(AdtInt, Constructor) {
 
 TEST(AdtInt, InsertOneItem) {
   auto dt = adt::Adt<int>{};
-  dt.probe(1);
+  dt.insert(1);
   EXPECT_EQ(dt.size(), 1);
 }
 
 TEST(AdtInt, InsertOneItemLeft) {
   auto dt = adt::Adt<int>{};
-  auto result = dt.probe(2);
+  auto result = dt.insert(2);
   EXPECT_EQ(result.second, true);
   EXPECT_EQ(*result.first, 2);
-  result = dt.probe(1);
+  result = dt.insert(1);
   EXPECT_EQ(result.second, true);
   EXPECT_EQ(*result.first, 1);
-  result = dt.probe(1);
+  result = dt.insert(1);
   EXPECT_EQ(result.second, false);
   EXPECT_EQ(*result.first, 1);
-  result = dt.probe(2);
+  result = dt.insert(2);
   EXPECT_EQ(result.second, false);
   EXPECT_EQ(*result.first, 2);
 
@@ -49,8 +49,8 @@ TEST(AdtInt, InsertOneItemLeft) {
 
 TEST(AdtInt, InsertOneItemRight) {
   auto dt = adt::Adt<int>{};
-  dt.probe(1);
-  dt.probe(2);
+  dt.insert(1);
+  dt.insert(2);
   EXPECT_EQ(dt.size(), 2);
   std::vector<int> required_inorder = {1, 2};
   std::vector<int> required_balance = {1, 0};
@@ -65,9 +65,9 @@ TEST(AdtInt, InsertOneItemRight) {
 
 TEST(AdtInt, InsertTwoRight) {
   auto dt = adt::Adt<int>{};
-  dt.probe(1);
-  dt.probe(2);
-  dt.probe(3);
+  dt.insert(1);
+  dt.insert(2);
+  dt.insert(3);
   EXPECT_EQ(dt.size(), 3);
   std::vector<int> required_inorder = {1, 2, 3};
   std::vector<int> required_balance = {0, 0, 0};
@@ -82,9 +82,9 @@ TEST(AdtInt, InsertTwoRight) {
 
 TEST(AdtInt, InsertTwoLeft) {
   auto dt = adt::Adt<int>{};
-  dt.probe(3);
-  dt.probe(2);
-  dt.probe(1);
+  dt.insert(3);
+  dt.insert(2);
+  dt.insert(1);
   EXPECT_EQ(dt.size(), 3);
   std::vector<int> required_inorder = {1, 2, 3};
   std::vector<int> required_balance = {0, 0, 0};
@@ -112,7 +112,7 @@ TEST(AdtInt, BigTest1) {
                                        0, 0,  -1, 0, 0,  0, 0, -1, 0, 0, 0,
                                        1, 1,  0,  0, 1,  0, 0, 0,  0, 0};
   for (auto a : source) {
-    dt.probe(a);
+    dt.insert(a);
   }
   EXPECT_EQ(dt.size(), source.size());
   auto preorder = dt.GetPreorderVector();
@@ -130,10 +130,10 @@ TEST(AdtInt, InsertTestRotate1) {
   auto dt = adt::Adt<int>{};
   std::vector<int> source = {100, 50, 150, 25, 75, 125, 175, 12, 35};
   for (int a : source) {
-    dt.probe(a);
+    dt.insert(a);
   }
   int a = 20;
-  dt.probe(a);
+  dt.insert(a);
   source.push_back(a);
   std::vector<int> required_preorder = {100, 25, 12,  20,  50,
                                         35,  75, 150, 125, 175};
@@ -156,10 +156,10 @@ TEST(AdtInt, InsertTestRotate2) {
   auto dt = adt::Adt<int>{};
   std::vector<int> source = {100, 50, 150, 25, 75, 125, 175, 12, 30, 60, 80};
   for (int a : source) {
-    dt.probe(a);
+    dt.insert(a);
   }
   int a = 55;
-  dt.probe(a);
+  dt.insert(a);
   source.push_back(a);
   std::vector<int> required_preorder = {75, 50,  25, 12,  30,  60,
                                         55, 100, 80, 150, 125, 175};
@@ -182,10 +182,10 @@ TEST(AdtInt, InsertTestRotate3) {
   auto dt = adt::Adt<int>{};
   std::vector<int> source = {100, 50, 150, 25, 75, 125, 175, 12, 30, 60, 80};
   for (int a : source) {
-    dt.probe(a);
+    dt.insert(a);
   }
   int a = 77;
-  dt.probe(a);
+  dt.insert(a);
   source.push_back(a);
   std::vector<int> required_preorder = {75,  50, 25, 12,  30,  60,
                                         100, 80, 77, 150, 125, 175};
@@ -208,10 +208,10 @@ TEST(AdtInt, InsertTestRotate4) {
   auto dt = adt::Adt<int>{};
   std::vector<int> source = {100, 50};
   for (int a : source) {
-    dt.probe(a);
+    dt.insert(a);
   }
   int a = 75;
-  dt.probe(a);
+  dt.insert(a);
   source.push_back(a);
   std::vector<int> required_preorder = {75, 50, 100};
   std::vector<int> required_balance = {0, 0, 0};
@@ -232,10 +232,10 @@ TEST(AdtInt, InsertTestRotate5) {
   auto dt = adt::Adt<int>{};
   std::vector<int> source = {100, 50, 150, 120, 200};
   for (int a : source) {
-    dt.probe(a);
+    dt.insert(a);
   }
   int a = 250;
-  dt.probe(a);
+  dt.insert(a);
   source.push_back(a);
   std::vector<int> required_preorder = {150, 100, 50, 120, 200, 250};
   std::vector<int> required_inorder = {50, 100, 120, 150, 200, 250};
@@ -256,10 +256,10 @@ TEST(AdtInt, InsertTestRotate6) {
   auto dt = adt::Adt<int>{};
   std::vector<int> source = {100, 50, 150, 20, 120, 200, 110, 135, 170, 300};
   for (int a : source) {
-    dt.probe(a);
+    dt.insert(a);
   }
   int a = 130;
-  dt.probe(a);
+  dt.insert(a);
   source.push_back(a);
   std::vector<int> required_preorder = {120, 100, 50,  20,  110, 150,
                                         135, 130, 200, 170, 300};
@@ -282,10 +282,10 @@ TEST(AdtInt, InsertTestRotate7) {
   auto dt = adt::Adt<int>{};
   std::vector<int> source = {100, 150};
   for (int a : source) {
-    dt.probe(a);
+    dt.insert(a);
   }
   int a = 125;
-  dt.probe(a);
+  dt.insert(a);
   source.push_back(a);
   std::vector<int> required_preorder = {125, 100, 150};
   std::vector<int> required_balance = {0, 0, 0};
@@ -306,10 +306,10 @@ TEST(AdtInt, InsertTestRotate8) {
   auto dt = adt::Adt<int>{};
   std::vector<int> source = {100, 50, 150, 20, 120, 200, 110, 135, 170, 300};
   for (int a : source) {
-    dt.probe(a);
+    dt.insert(a);
   }
   int a = 105;
-  dt.probe(a);
+  dt.insert(a);
   source.push_back(a);
   std::vector<int> required_preorder = {120, 100, 50,  20,  110, 105,
                                         150, 135, 200, 170, 300};
@@ -333,7 +333,7 @@ TEST(AdtInt, IteratorIncrementTest) {
   EXPECT_EQ(dt.begin(), dt.end());
 
   for (int a : source) {
-    dt.probe(a);
+    dt.insert(a);
   }
   std::vector<int> required_inorder = {20,  50,  100, 105, 110, 120,
                                        135, 150, 170, 200, 300};
@@ -356,7 +356,7 @@ TEST(AdtInt, IteratorPostincrementTest) {
   EXPECT_EQ(dt.begin(), dt.end());
 
   for (int a : source) {
-    dt.probe(a);
+    dt.insert(a);
   }
   std::vector<int> required_inorder = {20,  50,  100, 105, 110, 120,
                                        135, 150, 170, 200, 300};
@@ -381,7 +381,7 @@ TEST(AdtInt, IteratorDecrementTest) {
   EXPECT_EQ(dt.begin(), dt.end());
 
   for (int a : source) {
-    dt.probe(a);
+    dt.insert(a);
   }
   std::vector<int> required_inorder = {10,  20,  50,  60,  100, 130,
                                        140, 150, 155, 160, 170};
@@ -418,7 +418,7 @@ TEST(AdtInt, IteratorPostDecrementTest) {
   EXPECT_EQ(dt.begin(), dt.end());
 
   for (int a : source) {
-    dt.probe(a);
+    dt.insert(a);
   }
   std::vector<int> required_inorder = {10,  20,  50,  60,  100, 130,
                                        140, 150, 155, 160, 170};
@@ -457,6 +457,42 @@ TEST(AdtInt, IteratorIteratorTraitsTest) {
                    adt::Adt<int>::iterator>::iterator_category),
             typeid(std::bidirectional_iterator_tag));
 }
+
+TEST(AdtInt, LowerBoundEmpty) {
+  auto dt = adt::Adt<int>{};
+  auto it = dt.lower_bound(42);
+  EXPECT_EQ(dt.end(), it);
+}
+
+TEST(AdtInt, LowerBound) {
+  /*
+   * Test lower_bound
+   */
+  auto dt = adt::Adt<int>{};
+  std::vector<int> source = {100, 50, 150, 25, 75, 125, 175, 12, 35, 20};
+  for (int a : source) {
+    dt.insert(a);
+  }
+  std::vector<int> required_inorder = {12, 20,  25,  35,  50,
+                                       75, 100, 125, 150, 175};
+  EXPECT_EQ(dt.size(), source.size());
+  auto inorder = dt.GetInorderVector();
+  EXPECT_EQ(required_inorder, inorder);
+  auto it = dt.lower_bound(11);
+  EXPECT_EQ(*it, 12);
+  it = dt.lower_bound(13);
+  EXPECT_EQ(*it, 20);
+  it = dt.lower_bound(25);
+  EXPECT_EQ(*it, 25);
+  it = dt.lower_bound(102);
+  EXPECT_EQ(*it, 125);
+  it = dt.lower_bound(99);
+  EXPECT_EQ(*it, 100);
+  it = dt.lower_bound(180);
+  EXPECT_EQ(it, dt.end());
+}
+
+
 } // namespace
 } // namespace project
 } // namespace my

@@ -27,7 +27,6 @@ class Adt {
   static constexpr std::size_t kRight = 1;
   static constexpr std::size_t kLeaf = 2;
 
-  using AdtPtr = Adt *;
 
   struct AvlNode;
 
@@ -57,7 +56,7 @@ class Adt {
 
 public:
   class Iterator {
-    AdtPtr ptr_ = nullptr;
+    const Adt* ptr_ = nullptr;
     NodePtrStack stack_;
 
     void ReserveStackCapacity(std::size_t cap = kMaxStack) {
@@ -66,12 +65,12 @@ public:
 
     Iterator() = delete;
 
-    explicit Iterator(AdtPtr p) : ptr_(p) {}
+    explicit Iterator(const Adt *p) : ptr_(p) {}
 
-    Iterator(AdtPtr p, NodePtrStack &&stack)
+    Iterator(const Adt *p, NodePtrStack &&stack)
         : ptr_(p), stack_(std::move(stack)) {}
 
-    Iterator(AdtPtr p, NodePtr ptr) : ptr_(p) {
+    Iterator(const Adt *p, NodePtr ptr) : ptr_(p) {
       ReserveStackCapacity();
       stack_.push_back(ptr);
     }
@@ -196,7 +195,7 @@ public:
   // Removes the element at pos.
   Iterator Erase(Iterator &pos);
   // find node equal key , if not found = return end()
-  Iterator find(const T &key);
+  Iterator find(const T &key) const;
   // clear Atd
   void Clear();
   // save tree to .dot file
@@ -209,6 +208,8 @@ public:
   std::vector<int> GetInorderAvlBalanceVector() const;
   // count items in range
   int CountByRange(T first, T second) const;
+  // find first element not less than v
+  Iterator lower_bound(const T &v) const; 
 
   Iterator begin() {
     NodePtrStack result;
@@ -220,7 +221,7 @@ public:
     }
     return Iterator(this, std::move(result));
   }
-  Iterator end() { return Iterator(this); }
+  Iterator end() const{ return Iterator(this); }
   ~Adt() { Clear(); }
 
 private:
@@ -695,7 +696,7 @@ template <class T> typename Adt<T>::InsertResult Adt<T>::insert(const T &data) {
 }
 
 // find node equal key , if not found = return end()
-template <class T> typename Adt<T>::Iterator Adt<T>::find(const T &data) {
+template <class T> typename Adt<T>::Iterator Adt<T>::find(const T &data) const{
   NodePtrStack stack;
   stack.reserve(kMaxStack);
 
@@ -760,5 +761,33 @@ template <class T> int Adt<T>::CountByRange(T first, T second) const {
 
   return result;
 }
+// lower_bound element not less than v , if not found = return end()
+template <class T> typename Adt<T>::Iterator Adt<T>::lower_bound(const T &v) const{
+  if (size() == 0){
+    return end();
+  }
+  NodePtrStack stack;
+  stack.reserve(kMaxStack);
+  std::strong_ordering cmp = std::strong_ordering::equivalent;
+
+  int dir = 0;
+
+  for (NodePtr p = root_; p != nullptr;) {
+    cmp = v <=> p->avl_data_;
+    stack.push_back(p);
+    if (0 == cmp){
+      break;
+    }
+    dir = cmp > 0;
+    p = p->avl_link_[dir];
+  }
+
+  auto result = Iterator(this, std::move(stack));
+  if (cmp > 0){
+    ++result;
+  }
+  return result;
+}
+
 
 } // namespace adt
