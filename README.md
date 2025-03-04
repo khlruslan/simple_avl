@@ -31,4 +31,6 @@ Useful functions:
 - post/pre - increment/decrement for iterator
 - lower_bound
 - upper_bound
+- it = avl_tree.end(); --it ; // returns last element
+  
   
