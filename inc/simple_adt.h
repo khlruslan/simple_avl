@@ -210,6 +210,8 @@ public:
   int CountByRange(T first, T second) const;
   // find first element not less than v
   Iterator lower_bound(const T &v) const; 
+  // find first element greater than v
+  Iterator upper_bound(const T &v) const; 
 
   Iterator begin() {
     NodePtrStack result;
@@ -784,6 +786,35 @@ template <class T> typename Adt<T>::Iterator Adt<T>::lower_bound(const T &v) con
 
   auto result = Iterator(this, std::move(stack));
   if (cmp > 0){
+    ++result;
+  }
+  return result;
+}
+
+
+// upper_bound element not less than v , if not found = return end()
+template <class T> typename Adt<T>::Iterator Adt<T>::upper_bound(const T &v) const{
+  if (size() == 0){
+    return end();
+  }
+  NodePtrStack stack;
+  stack.reserve(kMaxStack);
+  std::strong_ordering cmp = std::strong_ordering::equivalent;
+
+  int dir = 0;
+
+  for (NodePtr p = root_; p != nullptr;) {
+    cmp = v <=> p->avl_data_;
+    stack.push_back(p);
+    if (0 == cmp){
+      break;
+    }
+    dir = cmp > 0;
+    p = p->avl_link_[dir];
+  }
+
+  auto result = Iterator(this, std::move(stack));
+  if (cmp >= 0){
     ++result;
   }
   return result;

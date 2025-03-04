@@ -493,6 +493,35 @@ TEST(AdtInt, LowerBound) {
 }
 
 
+TEST(AdtInt, UpperBound) {
+  /*
+   * Test lower_bound
+   */
+  auto dt = adt::Adt<int>{};
+  std::vector<int> source = {100, 50, 150, 25, 75, 125, 175, 12, 35, 20};
+  for (int a : source) {
+    dt.insert(a);
+  }
+  std::vector<int> required_inorder = {12, 20,  25,  35,  50,
+                                       75, 100, 125, 150, 175};
+  EXPECT_EQ(dt.size(), source.size());
+  auto inorder = dt.GetInorderVector();
+  EXPECT_EQ(required_inorder, inorder);
+  auto it = dt.upper_bound(11);
+  EXPECT_EQ(*it, 12);
+  it = dt.upper_bound(12);
+  EXPECT_EQ(*it, 20);
+  it = dt.upper_bound(21);
+  EXPECT_EQ(*it, 25);
+  it = dt.upper_bound(100);
+  EXPECT_EQ(*it, 125);
+  it = dt.upper_bound(99);
+  EXPECT_EQ(*it, 100);
+  it = dt.upper_bound(180);
+  EXPECT_EQ(it, dt.end());
+}
+
+
 } // namespace
 } // namespace project
 } // namespace my
