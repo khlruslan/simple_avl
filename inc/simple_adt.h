@@ -27,7 +27,6 @@ class Adt {
   static constexpr std::size_t kRight = 1;
   static constexpr std::size_t kLeaf = 2;
 
-
   struct AvlNode;
 
   using NodePtr = AvlNode *;
@@ -56,7 +55,7 @@ class Adt {
 
 public:
   class Iterator {
-    const Adt* ptr_ = nullptr;
+    const Adt *ptr_ = nullptr;
     NodePtrStack stack_;
 
     void ReserveStackCapacity(std::size_t cap = kMaxStack) {
@@ -143,6 +142,7 @@ public:
     Iterator &operator--() {
       NodePtr p = nullptr;
       if (stack_.empty()) {
+        *this = ptr_->pre_end();
         return *this;
       }
       // try to move left
@@ -209,11 +209,22 @@ public:
   // count items in range
   int CountByRange(T first, T second) const;
   // find first element not less than v
-  Iterator lower_bound(const T &v) const; 
+  Iterator lower_bound(const T &v) const;
   // find first element greater than v
-  Iterator upper_bound(const T &v) const; 
+  Iterator upper_bound(const T &v) const;
+  // get last element v
+  Iterator pre_end() const {
+    NodePtrStack result;
+    result.reserve(kMaxStack);
+    NodePtr p = root_;
+    while (nullptr != p) {
+      result.emplace_back(p);
+      p = p->avl_link_[1];
+    }
+    return Iterator(this, std::move(result));
+  }
 
-  Iterator begin() {
+  Iterator begin() const {
     NodePtrStack result;
     result.reserve(kMaxStack);
     NodePtr p = root_;
@@ -223,7 +234,7 @@ public:
     }
     return Iterator(this, std::move(result));
   }
-  Iterator end() const{ return Iterator(this); }
+  Iterator end() const { return Iterator(this); }
   ~Adt() { Clear(); }
 
 private:
@@ -698,7 +709,7 @@ template <class T> typename Adt<T>::InsertResult Adt<T>::insert(const T &data) {
 }
 
 // find node equal key , if not found = return end()
-template <class T> typename Adt<T>::Iterator Adt<T>::find(const T &data) const{
+template <class T> typename Adt<T>::Iterator Adt<T>::find(const T &data) const {
   NodePtrStack stack;
   stack.reserve(kMaxStack);
 
@@ -764,8 +775,9 @@ template <class T> int Adt<T>::CountByRange(T first, T second) const {
   return result;
 }
 // lower_bound element not less than v , if not found = return end()
-template <class T> typename Adt<T>::Iterator Adt<T>::lower_bound(const T &v) const{
-  if (size() == 0){
+template <class T>
+typename Adt<T>::Iterator Adt<T>::lower_bound(const T &v) const {
+  if (size() == 0) {
     return end();
   }
   NodePtrStack stack;
@@ -777,7 +789,7 @@ template <class T> typename Adt<T>::Iterator Adt<T>::lower_bound(const T &v) con
   for (NodePtr p = root_; p != nullptr;) {
     cmp = v <=> p->avl_data_;
     stack.push_back(p);
-    if (0 == cmp){
+    if (0 == cmp) {
       break;
     }
     dir = cmp > 0;
@@ -785,16 +797,16 @@ template <class T> typename Adt<T>::Iterator Adt<T>::lower_bound(const T &v) con
   }
 
   auto result = Iterator(this, std::move(stack));
-  if (cmp > 0){
+  if (cmp > 0) {
     ++result;
   }
   return result;
 }
-
 
 // upper_bound element not less than v , if not found = return end()
-template <class T> typename Adt<T>::Iterator Adt<T>::upper_bound(const T &v) const{
-  if (size() == 0){
+template <class T>
+typename Adt<T>::Iterator Adt<T>::upper_bound(const T &v) const {
+  if (size() == 0) {
     return end();
   }
   NodePtrStack stack;
@@ -806,7 +818,7 @@ template <class T> typename Adt<T>::Iterator Adt<T>::upper_bound(const T &v) con
   for (NodePtr p = root_; p != nullptr;) {
     cmp = v <=> p->avl_data_;
     stack.push_back(p);
-    if (0 == cmp){
+    if (0 == cmp) {
       break;
     }
     dir = cmp > 0;
@@ -814,11 +826,10 @@ template <class T> typename Adt<T>::Iterator Adt<T>::upper_bound(const T &v) con
   }
 
   auto result = Iterator(this, std::move(stack));
-  if (cmp >= 0){
+  if (cmp >= 0) {
     ++result;
   }
   return result;
 }
-
 
 } // namespace adt

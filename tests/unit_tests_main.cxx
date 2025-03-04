@@ -492,11 +492,7 @@ TEST(AdtInt, LowerBound) {
   EXPECT_EQ(it, dt.end());
 }
 
-
 TEST(AdtInt, UpperBound) {
-  /*
-   * Test lower_bound
-   */
   auto dt = adt::Adt<int>{};
   std::vector<int> source = {100, 50, 150, 25, 75, 125, 175, 12, 35, 20};
   for (int a : source) {
@@ -521,6 +517,23 @@ TEST(AdtInt, UpperBound) {
   EXPECT_EQ(it, dt.end());
 }
 
+TEST(AdtInt, DecrementEndIterator) {
+  auto dt = adt::Adt<int>{};
+  std::vector<int> source = {100, 50, 150, 25, 75, 125, 175, 12, 35, 20};
+  for (int a : source) {
+    dt.insert(a);
+  }
+  std::vector<int> required_inorder = {12, 20,  25,  35,  50,
+                                       75, 100, 125, 150, 175};
+  EXPECT_EQ(dt.size(), source.size());
+  auto inorder = dt.GetInorderVector();
+  EXPECT_EQ(required_inorder, inorder);
+  auto it = dt.end();
+  --it;
+  EXPECT_EQ(*it, 175);
+  it--;
+  EXPECT_EQ(*it, 150);
+}
 
 } // namespace
 } // namespace project
