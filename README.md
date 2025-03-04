@@ -25,3 +25,10 @@ Requests:
 <p>
  2 0 3
 </p>
+
+Useful functions:
+- iterator
+- post/pre - increment/decrement for iterator
+- lower_bound
+- upper_bound
+  
