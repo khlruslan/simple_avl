@@ -22,8 +22,19 @@ TEST(AdtInt, InsertOneItem) {
 
 TEST(AdtInt, InsertOneItemLeft) {
   auto dt = adt::Adt<int>{};
-  dt.probe(2);
-  dt.probe(1);
+  auto result = dt.probe(2);
+  EXPECT_EQ(result.second, true);
+  EXPECT_EQ(*result.first, 2);
+  result = dt.probe(1);
+  EXPECT_EQ(result.second, true);
+  EXPECT_EQ(*result.first, 1);
+  result = dt.probe(1);
+  EXPECT_EQ(result.second, false);
+  EXPECT_EQ(*result.first, 1);
+  result = dt.probe(2);
+  EXPECT_EQ(result.second, false);
+  EXPECT_EQ(*result.first, 2);
+
   EXPECT_EQ(dt.size(), 2);
   std::vector<int> required_inorder = {1, 2};
   std::vector<int> required_balance = {0, -1};

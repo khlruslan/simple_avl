@@ -525,9 +525,9 @@ template <class T> typename Adt<T>::InsertResult Adt<T>::probe(const T &data) {
   std::cerr << __FUNCTION__ << " data: " << data << "\n";
 #endif
   // Step 1 : Search new node position
-  for (q = z, p = y; nullptr != p;
-       q = p, stack.push_back(p), p = p->avl_link_[dir]) {
+  for (q = z, p = y; nullptr != p; q = p, p = p->avl_link_[dir]) {
     auto cmp = data <=> p->avl_data_;
+    stack.push_back(p);
     if (cmp == 0) {
       // false - item was not inserted
       return std::make_pair(Iterator(this, std::move(stack)), false);
